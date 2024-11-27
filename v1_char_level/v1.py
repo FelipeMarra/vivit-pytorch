@@ -2,6 +2,7 @@
 import torch
 from char_level_loader import CharLoader
 from v1_decoder import V1Model, train
+import matplotlib.pyplot as plt 
 
 torch.manual_seed(1337)
 
@@ -30,18 +31,18 @@ print("loss:",loss.item())
 print("idx2char 0:", loader.idx2char[0])
 
 # Generation
-prompt = torch.zeros((1, 1), dtype=torch.long)
-generated = v1_model.generate(prompt, 100)
-decoded = loader.decode(generated)
-print(decoded[0])
+def gen_test():
+    prompt = torch.zeros((1, 1), dtype=torch.long)
+    generated = v1_model.generate(prompt, 100)
+    decoded = loader.decode(generated)
+    print(decoded[0])
 
-#%%
-loss = train(v1_model, loader, steps=1000)
-print("Final loss:", loss)
+gen_test()
+
+#%% Train and check results
+losses = train(v1_model, loader, steps=1000)
+plt.plot(range(len(losses)), losses)
+print("Final loss:", losses[-1])
 
 # Generation
-prompt = torch.zeros((1, 1), dtype=torch.long)
-generated = v1_model.generate(prompt, 100)
-decoded = loader.decode(generated)
-print(decoded[0])
-# %%
+gen_test()

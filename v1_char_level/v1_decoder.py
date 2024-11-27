@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 from torch.nn import functional as F
+import numpy as np
 
 class LinearMultiheadAtt(nn.Module):
     def __init__(self, d_model, n_heads):
@@ -69,11 +70,13 @@ class V1Model(nn.Module):
 
         return generated
 
-def train(model:nn.Module, loader, batch_size = 32, steps = 100):
+def train(model:nn.Module, loader, batch_size=32, steps=100, avg_steps=10):
     # create a PyTorch optimizer
     optimizer = torch.optim.AdamW(model.parameters(), lr=1e-3)
 
-    for _ in range(steps):
+    losses = []
+    running_loss = 0
+    for i in range(steps):
         # sample a batch of data
         xb, yb = loader.get_batch('train')
 
@@ -82,6 +85,14 @@ def train(model:nn.Module, loader, batch_size = 32, steps = 100):
         optimizer.zero_grad(set_to_none=True)
         loss.backward()
         optimizer.step()
-        print(loss.item())
 
-    return loss.item()
+        if (i+1) % avg_steps == 0:
+            mean_loss = running_loss/avg_steps
+            losses.append(mean_loss)
+            running_loss = 0
+        else:
+            loss_item = loss.item()
+            running_loss += loss_item
+            print(loss_item)
+
+    return losses
