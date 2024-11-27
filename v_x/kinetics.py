@@ -5,4 +5,4 @@ kinetics = Kinetics(root='/media/felipe/C0CE73B2CE739EFA/Kinetics',
                     download=True, 
                     frames_per_clip=128, 
                     step_between_clips=2, 
-                    num_download_workers=1)
+                    num_download_workers=6)

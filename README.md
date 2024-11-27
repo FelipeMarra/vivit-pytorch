@@ -1,2 +1,2 @@
-# video-transformer
-Video Transformer
+# Video Vision Transformer
+Video Vision Transformer

@@ -1,8 +1,9 @@
 import torch
 
-shakespeare = '/home/felipe/Documents/Github/video-transformer/data/shakespeare.txt'
-
-class ShakeLoader():
+class CharLoader():
+    """
+        Loads random samples of chars from txt files (w/ replacement)
+    """
     def __init__(self, path, batch_size, context_size):
         self.path = path
         self.batch_size = batch_size
