@@ -2,4 +2,4 @@
     |_ Vocab Embedding table (vocab_size, emb_dim)
     |_ Linear (emb_dim, vocab_size)
 
-    Final loss: 2.58 (1000 steps, avg every 10 steps)
+    Final loss: 2.34 (1500 steps, avg every 10 steps)

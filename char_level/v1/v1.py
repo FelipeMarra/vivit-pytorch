@@ -1,13 +1,23 @@
 #%% Imports
 import torch
 from char_level_loader import CharLoader
-from v1_decoder import V1Model, train
-import matplotlib.pyplot as plt 
+from v1_decoder import CharV1, train
+import matplotlib.pyplot as plt
+import numpy as np
+import random
 
-torch.manual_seed(1337)
+#%% Seed
+def setup_seed(seed):
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed_all(seed)
+    np.random.seed(seed)
+    random.seed(seed)
+    torch.backends.cudnn.deterministic = True
+
+setup_seed(42)
 
 #%% Consts
-PATH = '/home/felipe/Documents/Github/video-transformer/v1_char_level/data/shakespeare.txt'
+PATH = '../data/shakespeare.txt'
 BATCH_SIZE = 4
 CONTEXT_SIZE = 8
 EMBEDDING_DIM = 10
@@ -22,7 +32,7 @@ print("batch x:",loader.decode(x))
 print("batch y:",loader.decode(y))
 
 #%% Test untrained model
-v1_model = V1Model(loader.vocab_size, CONTEXT_SIZE, EMBEDDING_DIM)
+v1_model = CharV1(loader.vocab_size, CONTEXT_SIZE, EMBEDDING_DIM)
 
 # Loss
 logits, loss = v1_model(x, y)
@@ -41,7 +51,7 @@ def gen_test():
 gen_test()
 
 #%% Train and check results
-losses = train(v1_model, loader, steps=1000)
+losses = train(v1_model, loader, steps=1500)
 plt.plot(range(len(losses)), losses)
 print("Final loss:", losses[-1])
 

@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 from torch.nn import functional as F
 
-class V1Model(nn.Module):
+class CharV2(nn.Module):
     def __init__(self, vocab_size, context_size, emb_dim):
         super().__init__()
         self.vocab_size = vocab_size
