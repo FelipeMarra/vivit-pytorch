@@ -1,48 +1,30 @@
 import torch
 import torch.nn as nn
 from torch.nn import functional as F
-import numpy as np
-
-class LinearMultiheadAtt(nn.Module):
-    def __init__(self, d_model, n_heads):
-        super().__init__()
-        self.n_heads = n_heads
-
-        self.wq = nn.Parameter(d_model, d_model)
-        self.wk = nn.Parameter(d_model, d_model)
-        self.wv = nn.Parameter(d_model, d_model)
-
-    def forward(self, x, mask=True):
-        pass
-
-class ParallelMultiheadAtt(nn.Module):
-    def __init__(self, d_model, n_heads):
-        super().__init__()
-        self.n_heads = n_heads
-
-        self.wq = nn.Parameter(d_model, d_model)
-        self.wk = nn.Parameter(d_model, d_model)
-        self.wv = nn.Parameter(d_model, d_model)
-        self.wo = nn.Parameter(d_model, d_model)
-
-    def forward(self, x, mask=True):
-        pass
-
-class Decoder(nn.Module):
-    def __init__(self):
-        super().__init__()
 
 class V1Model(nn.Module):
-    def __init__(self, vocab_size, emb_dim):
+    def __init__(self, vocab_size, context_size, emb_dim):
         super().__init__()
+        self.vocab_size = vocab_size
+        self.context_size = context_size
+        self.emb_dim = emb_dim
 
-        self.embedding_table = nn.Embedding(vocab_size, emb_dim)
+        self.tkn_emb_table = nn.Embedding(vocab_size, emb_dim)
+        self.pos_emb_table = nn.Embedding(context_size, emb_dim)
+        # y = x @ A.T + b, where A is (vocab_size, emb_dim) and b in (1, vocab_size)
+        # in practice it is x @ (emb_dim, vocab_size) + (1, vocab_size)
         self.lm_head = nn.Linear(emb_dim, vocab_size)
 
     def forward(self, x, targets=None):
         # x -> (B, S); S = seq len
-        emb_tokens = self.embedding_table(x) # emb_tokens -> (B, S, E); E = embeding dims
-        logits = self.lm_head(emb_tokens) # lm_head (E, V) @ emb_tokens -> (B, S, V); V = vocab size
+        B, S = x.shape
+
+        # token and positiona embeddings
+        tkn_emb = self.tkn_emb_table(x) # tkn_emb -> (B, S, E); E = embeding dims
+        pos_emb = self.pos_emb_table(torch.arange(S)) # pos_emb -> (S, E)
+        x = tkn_emb + pos_emb # (B, S, E)
+
+        logits = self.lm_head(x) # x (B, S, E) @ lm_head (E, V) -> (B, S, V); V = vocab size
 
         if targets == None:
             loss = None
@@ -57,12 +39,16 @@ class V1Model(nn.Module):
     def generate(self, generated, max_num_tokens):
         # generated --> (B, S); an array of indices in the current sequence
         for _ in range(max_num_tokens):
-            # get predictions from model
-            logits, _ = self(generated) # logits --> (B, S, V)
+            # get predictions from model with input being up to context_size
+            _, S = generated.shape
+            x = generated[:, -self.context_size:] if S > self.context_size else generated
+
+            logits, _ = self(x) # logits --> (B, S, V)
             # get last chars
             logits = logits[:, -1, :] # (B, V)
             # softmax on the vocab dimention
             probs = F.softmax(logits, dim=-1) # (B, V)
+
             # sample from probs distribution
             preds = torch.multinomial(probs, 1) # (B, 1)
             # append preds on generated
@@ -70,7 +56,7 @@ class V1Model(nn.Module):
 
         return generated
 
-def train(model:nn.Module, loader, batch_size=32, steps=100, avg_steps=10):
+def train(model:nn.Module, loader, steps=100, avg_steps=10):
     # create a PyTorch optimizer
     optimizer = torch.optim.AdamW(model.parameters(), lr=1e-3)
 

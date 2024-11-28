@@ -1,5 +1,5 @@
 1st Bigram Model
-    |_ Vocab Embedding table
-    |_ Linear
+    |_ Vocab Embedding table (vocab_size, emb_dim)
+    |_ Linear (emb_dim, vocab_size)
 
-    Final loss: 2.3339 (1000 steps, avg every 10 steps)
+    Final loss: 2.58 (1000 steps, avg every 10 steps)
