@@ -1,8 +1,13 @@
 2nd Bigram Model
     |_ Vocab Embedding table (vocab_size, emb_dim)
-    |_ Position Embedding table (Learned positional embedding) (context_size, emb_dim)
     |_ Linear (emb_dim, vocab_size)
 
-    Final loss: 2.42 (1480 steps, avg every 10 steps)
+    Final loss: 2.34 (1500 steps, avg every 10 steps)
 
-    1480 steps because loss peaked after that. I'm running 1500 steps and cutting the final peak.
+    Example Generation:
+        WYo bho dol,e b.
+        O,hort, lell arenwf the.D
+        AT:irat'lts.
+        UullavH.
+        GeualomDJ.
+        Omhe mec,iI-j, kS;inndl

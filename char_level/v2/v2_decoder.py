@@ -10,7 +10,6 @@ class CharV2(nn.Module):
         self.emb_dim = emb_dim
 
         self.tkn_emb_table = nn.Embedding(vocab_size, emb_dim)
-        self.pos_emb_table = nn.Embedding(context_size, emb_dim)
         # y = x @ A.T + b, where A is (vocab_size, emb_dim) and b in (1, vocab_size)
         # in practice it is x @ (emb_dim, vocab_size) + (1, vocab_size)
         self.lm_head = nn.Linear(emb_dim, vocab_size)
@@ -21,10 +20,7 @@ class CharV2(nn.Module):
 
         # token and positiona embeddings
         tkn_emb = self.tkn_emb_table(x) # tkn_emb -> (B, S, E); E = embeding dims
-        pos_emb = self.pos_emb_table(torch.arange(S)) # pos_emb -> (S, E)
-        x = tkn_emb + pos_emb # (B, S, E)
-
-        logits = self.lm_head(x) # x (B, S, E) @ lm_head (E, V) -> (B, S, V); V = vocab size
+        logits = self.lm_head(tkn_emb) # x (B, S, E) @ lm_head (E, V) -> (B, S, V); V = vocab size
 
         if targets == None:
             loss = None

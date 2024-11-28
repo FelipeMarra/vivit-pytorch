@@ -51,7 +51,7 @@ def gen_test():
 gen_test()
 
 #%% Train and check results
-losses = train(v1_model, loader, steps=1480)
+losses = train(v1_model, loader, steps=1500)
 plt.plot(range(len(losses)), losses)
 print("Final loss:", losses[-1])
 

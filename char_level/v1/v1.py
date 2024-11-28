@@ -20,7 +20,6 @@ setup_seed(42)
 PATH = '../data/shakespeare.txt'
 BATCH_SIZE = 4
 CONTEXT_SIZE = 8
-EMBEDDING_DIM = 10
 
 #%% Load some Shakespeare
 loader = CharLoader(PATH, BATCH_SIZE, CONTEXT_SIZE)
@@ -32,7 +31,7 @@ print("batch x:",loader.decode(x))
 print("batch y:",loader.decode(y))
 
 #%% Test untrained model
-v1_model = CharV1(loader.vocab_size, CONTEXT_SIZE, EMBEDDING_DIM)
+v1_model = CharV1(loader.vocab_size, CONTEXT_SIZE)
 
 # Loss
 logits, loss = v1_model(x, y)

@@ -3,22 +3,17 @@ import torch.nn as nn
 from torch.nn import functional as F
 
 class CharV1(nn.Module):
-    def __init__(self, vocab_size, context_size, emb_dim):
+    def __init__(self, vocab_size, context_size):
         super().__init__()
-        self.vocab_size = vocab_size
         self.context_size = context_size
-        self.emb_dim = emb_dim
+        self.vocab_size = vocab_size
 
-        self.tkn_emb_table = nn.Embedding(vocab_size, emb_dim)
-        # y = x @ A.T + b, where A is (vocab_size, emb_dim) and b in (1, vocab_size)
-        # in practice it is x @ (emb_dim, vocab_size) + (1, vocab_size)
-        self.lm_head = nn.Linear(emb_dim, vocab_size)
+        self.tkn_emb_table = nn.Embedding(vocab_size, vocab_size)
 
     def forward(self, x, targets=None):
         # x -> (B, S); S = seq len
         # token and positiona embeddings
-        tkn_emb = self.tkn_emb_table(x) # tkn_emb -> (B, S, E); E = embeding dims
-        logits = self.lm_head(tkn_emb) # tkn_emb (B, S, E) @ lm_head (E, V) -> (B, S, V); V = vocab size
+        logits = self.tkn_emb_table(x) # tkn_emb -> (B, S, E); E = embeding dims
 
         if targets == None:
             loss = None
