@@ -38,7 +38,7 @@ logits, loss = v1_model(x, y)
 print("logits.shape:", logits.shape)
 print("loss:",loss.item())
 
-print("idx2char 0:", loader.idx2char[0])
+print("idx2char 0:", loader.idx2char[0]) # \n
 
 # Generation
 def gen_test():

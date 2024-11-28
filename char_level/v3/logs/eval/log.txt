@@ -1,0 +1,8 @@
+2nd Bigram Model
+    |_ Vocab Embedding table (vocab_size, emb_dim)
+    |_ Position Embedding table (Learned positional embedding) (context_size, emb_dim)
+    |_ Linear (emb_dim, vocab_size)
+
+    Final loss: 2.42 (1500 steps, avg every 10 steps)
+
+    
