@@ -18,7 +18,7 @@ class AvgSelfAtt(nn.Module):
 
         return x
 
-class CharV3(nn.Module):
+class CharV4(nn.Module):
     def __init__(self, vocab_size, context_size, emb_dim):
         super().__init__()
         self.vocab_size = vocab_size

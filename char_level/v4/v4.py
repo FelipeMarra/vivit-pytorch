@@ -1,7 +1,7 @@
 #%% Imports
 import torch
 from char_level_loader import CharLoader
-from v3_decoder import CharV3, train
+from v4_decoder import CharV4, train
 import matplotlib.pyplot as plt
 import numpy as np
 import random
@@ -39,10 +39,10 @@ print("batch x:",loader.decode(x))
 print("batch y:",loader.decode(y))
 
 #%% Test untrained model
-v1_model = CharV3(loader.vocab_size, CONTEXT_SIZE, EMBEDDING_DIM).cuda()
+model = CharV4(loader.vocab_size, CONTEXT_SIZE, EMBEDDING_DIM).cuda()
 
 # Loss
-logits, loss = v1_model(x, y)
+logits, loss = model(x, y)
 print("logits.shape:", logits.shape)
 print("loss:",loss.item())
 
@@ -51,14 +51,14 @@ print("idx2char 0:", loader.idx2char[0]) # \n
 # Generation
 def gen_test():
     prompt = torch.zeros((1, 1), dtype=torch.long, device='cuda')
-    generated = v1_model.generate(prompt, 100)
+    generated = model.generate(prompt, 100)
     decoded = loader.decode(generated)
     print(decoded[0])
 
 gen_test()
 
 #%% Train
-train_loss, eval_loss = train(v1_model, loader, steps=STEPS, lr=LR, 
+train_loss, eval_loss = train(model, loader, steps=STEPS, lr=LR, 
                               eval_every=EVAL_EVERY, eval_steps=EVAL_STEPS)
 
 #%% Plot losses
