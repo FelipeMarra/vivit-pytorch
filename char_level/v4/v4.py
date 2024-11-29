@@ -18,14 +18,14 @@ def setup_seed(seed):
 SEED = 42
 PATH = '../data/shakespeare.txt'
 
-STEPS = 10000 # num of training steps
-BATCH_SIZE = 4
+STEPS = 5000 # num of training steps
+BATCH_SIZE = 32
 CONTEXT_SIZE = 8
-EMBEDDING_DIM = 10
+EMBEDDING_DIM = 32
 LR = 1e-3
 
-EVAL_EVERY = 50 # eval every 50 train steps
-EVAL_STEPS = 100
+EVAL_EVERY = 200 # eval every X train steps
+EVAL_STEPS = 200
 
 setup_seed(SEED)
 
@@ -48,10 +48,10 @@ print("loss:",loss.item())
 
 print("idx2char 0:", loader.idx2char[0]) # \n
 
-# Generation
-def gen_test():
+#%% Generation
+def gen_test(n_chars=100):
     prompt = torch.zeros((1, 1), dtype=torch.long, device='cuda')
-    generated = model.generate(prompt, 100)
+    generated = model.generate(prompt, n_chars)
     decoded = loader.decode(generated)
     print(decoded[0])
 
@@ -69,4 +69,5 @@ leg = plt.legend()
 plt.show()
 
 #%% Generation
-gen_test()
+gen_test(200)
+# %%

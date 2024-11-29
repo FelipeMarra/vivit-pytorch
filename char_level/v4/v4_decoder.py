@@ -2,19 +2,28 @@ import torch
 import torch.nn as nn
 from torch.nn import functional as F
 
-class AvgSelfAtt(nn.Module):
-    def __init__(self):
+class ScaledDotProdSelfAtt(nn.Module):
+    def __init__(self, emd_dim, head_size, context_size):
         super().__init__()
-    
+        self.wq = nn.Linear(emd_dim, head_size, bias=False)
+        self.wk = nn.Linear(emd_dim, head_size, bias=False)
+        self.wv = nn.Linear(emd_dim, head_size, bias=False)
 
-    def forward(self, x):
-        _, S, _ = x.shape
+        self.register_buffer('mask', torch.tril(torch.ones(context_size, context_size)))
 
-        weights = torch.zeros(S, S).cuda() # zeros will become 1s on the softmax exp, creating a uniform distribution
-        mask = torch.tril(torch.ones(S, S).cuda()) # zeros if above the main diagonal and ones otherwise
-        weights = weights.masked_fill(mask == 0, float('-inf')) # set upper triangular values to -inf
-        weights = torch.softmax(weights, dim=-1) # create a uniform distribution in relation to the 1 positions for each row, -inf position become 0
-        x = weights @ x # average x's row values up until the main diagonal. weights (S, S) @ x (B, S, E) become (B, S, E) 
+    def forward(self, x:torch.Tensor) -> torch.Tensor:
+        _, S, E = x.shape # (B, S, E)
+
+        q:torch.Tensor = self.wq(x) # x (B, S, E) @ wq (E, E) = q (B, S, E)
+        k:torch.Tensor = self.wk(x) # x (B, S, E) @ wk (E, E) = k (B, S, E)
+        v:torch.Tensor = self.wv(x) # x (B, S, E) @ wv (E, E) = v (B, S, E)
+
+        att = q @ k.transpose(-2, -1) # Words similarity q (B, S, E) @ k (B, E, S) = x (B, S, S)
+        att = att * E**-0.5 # scale
+        att = att.masked_fill(self.mask[:S, :S] == 0, float('-inf')) # apply mask
+        att = F.softmax(att, dim=-1)  # Final attention weights (B, S, S)
+
+        x = att @ v # Weighted average x (B, S, S) @ v (B, S, E) = x (B, S, E)
 
         return x
 
@@ -27,7 +36,7 @@ class CharV4(nn.Module):
 
         self.tkn_emb_table = nn.Embedding(vocab_size, emb_dim)
         self.pos_emb_table = nn.Embedding(context_size, emb_dim)
-        self.avg_att = AvgSelfAtt()
+        self.scaled_dot_prod_att = ScaledDotProdSelfAtt(emb_dim, emb_dim, context_size)
         self.linear = nn.Linear(emb_dim, vocab_size)
 
     def forward(self, x, targets=None):
@@ -41,7 +50,7 @@ class CharV4(nn.Module):
         pos_emb = self.pos_emb_table(seq_indexes) # pos_emb -> (S, E)
         x = tkn_emb + pos_emb # (B, S, E)
 
-        x = self.avg_att(x) # (B, S, E)
+        x = self.scaled_dot_prod_att(x) # (B, S, E)
 
         logits = self.linear(x) # x (B, S, E) @ linear (E, V) -> (B, S, V); V = vocab size
 
