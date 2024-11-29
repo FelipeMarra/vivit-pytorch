@@ -1,8 +1,9 @@
 2nd Bigram Model
     |_ Vocab Embedding table (vocab_size, emb_dim)
     |_ Position Embedding table (Learned positional embedding) (context_size, emb_dim)
+    |_ AvgSelfAtt (will keep the input dim)
     |_ Linear (emb_dim, vocab_size)
 
-    Final loss: 2.42 (1500 steps, avg every 10 steps)
+    Final losses: train 2.9192; eval 2.8919 (10,000 steps, avg every 10 steps)
 
-    
+    Average Self Attention made it worst 😢

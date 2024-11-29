@@ -2,6 +2,22 @@ import torch
 import torch.nn as nn
 from torch.nn import functional as F
 
+class AvgSelfAtt(nn.Module):
+    def __init__(self):
+        super().__init__()
+    
+
+    def forward(self, x):
+        _, S, _ = x.shape
+
+        weights = torch.zeros(S, S).cuda() # zeros will become 1s on the softmax exp, creating a uniform distribution
+        mask = torch.tril(torch.ones(S, S).cuda()) # zeros if above the main diagonal and ones otherwise
+        weights = weights.masked_fill(mask == 0, float('-inf')) # set upper triangular values to -inf
+        weights = torch.softmax(weights, dim=-1) # create a uniform distribution in relation to the 1 positions for each row, -inf position become 0
+        x = weights @ x # average x's row values up until the main diagonal. weights (S, S) @ x (B, S, E) become (B, S, E) 
+
+        return x
+
 class CharV3(nn.Module):
     def __init__(self, vocab_size, context_size, emb_dim):
         super().__init__()
@@ -11,7 +27,8 @@ class CharV3(nn.Module):
 
         self.tkn_emb_table = nn.Embedding(vocab_size, emb_dim)
         self.pos_emb_table = nn.Embedding(context_size, emb_dim)
-        self.lm_head = nn.Linear(emb_dim, vocab_size)
+        self.avg_att = AvgSelfAtt()
+        self.linear = nn.Linear(emb_dim, vocab_size)
 
     def forward(self, x, targets=None):
         # x -> (B, S); S = seq len
@@ -22,10 +39,11 @@ class CharV3(nn.Module):
 
         seq_indexes = torch.arange(S).cuda()
         pos_emb = self.pos_emb_table(seq_indexes) # pos_emb -> (S, E)
-
         x = tkn_emb + pos_emb # (B, S, E)
 
-        logits = self.lm_head(x) # x (B, S, E) @ lm_head (E, V) -> (B, S, V); V = vocab size
+        x = self.avg_att(x) # (B, S, E)
+
+        logits = self.linear(x) # x (B, S, E) @ linear (E, V) -> (B, S, V); V = vocab size
 
         if targets == None:
             loss = None

@@ -12,7 +12,7 @@ class CharV2(nn.Module):
         self.tkn_emb_table = nn.Embedding(vocab_size, emb_dim)
         # y = x @ A.T + b, where A is (vocab_size, emb_dim) and b in (1, vocab_size)
         # in practice it is x @ (emb_dim, vocab_size) + (1, vocab_size)
-        self.lm_head = nn.Linear(emb_dim, vocab_size)
+        self.linear = nn.Linear(emb_dim, vocab_size)
 
     def forward(self, x, targets=None):
         # x -> (B, S); S = seq len
@@ -20,7 +20,7 @@ class CharV2(nn.Module):
 
         # token and positiona embeddings
         tkn_emb = self.tkn_emb_table(x) # tkn_emb -> (B, S, E); E = embeding dims
-        logits = self.lm_head(tkn_emb) # x (B, S, E) @ lm_head (E, V) -> (B, S, V); V = vocab size
+        logits = self.linear(tkn_emb) # x (B, S, E) @ linear (E, V) -> (B, S, V); V = vocab size
 
         if targets == None:
             loss = None

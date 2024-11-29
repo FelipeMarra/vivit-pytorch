@@ -18,6 +18,7 @@ def setup_seed(seed):
 SEED = 42
 PATH = '../data/shakespeare.txt'
 
+STEPS = 10000 # num of training steps
 BATCH_SIZE = 4
 CONTEXT_SIZE = 8
 EMBEDDING_DIM = 10
@@ -57,13 +58,13 @@ def gen_test():
 gen_test()
 
 #%% Train
-train_loss, eval_loss = train(v1_model, loader, steps=1500, lr=LR, 
+train_loss, eval_loss = train(v1_model, loader, steps=STEPS, lr=LR, 
                               eval_every=EVAL_EVERY, eval_steps=EVAL_STEPS)
 
 #%% Plot losses
 plt.plot(train_loss, label='train')
 plt.plot(eval_loss, label='eval')
-print(f"Final losses: train {train_loss[-1]}; eval {eval_loss[-1]}")
+print(f"Final losses: train {train_loss[-1]:.4f}; eval {eval_loss[-1]:.4f}")
 leg = plt.legend()
 plt.show()
 
