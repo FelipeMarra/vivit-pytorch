@@ -2,8 +2,8 @@ import torch
 import torch.nn as nn
 from torch.nn import functional as F
 
-class ScaledDotProdSelfAtt(nn.Module):
-    def __init__(self, emd_dim, head_size, context_size):
+class AttHead(nn.Module):
+    def __init__(self, emd_dim, context_size, head_size):
         super().__init__()
         self.wq = nn.Linear(emd_dim, head_size, bias=False)
         self.wk = nn.Linear(emd_dim, head_size, bias=False)
@@ -27,6 +27,16 @@ class ScaledDotProdSelfAtt(nn.Module):
 
         return x
 
+class MultiHeadAtt(nn.Module):
+    def __init__(self, emd_dim, context_size, head_size, n_heads):
+        super().__init__()
+
+        self.heads = nn.ModuleList([AttHead(emd_dim, context_size, head_size) for _ in range(n_heads)])
+
+    def forward(self, x):
+        # cat in the E dimention. if head size is E/2 and n_heads is 2, out will still be (B, S, E) 
+        return torch.cat([head(x) for head in self.heads], dim=-1)
+
 class CharV5(nn.Module):
     def __init__(self, vocab_size, context_size, emb_dim):
         super().__init__()
@@ -36,7 +46,7 @@ class CharV5(nn.Module):
 
         self.tkn_emb_table = nn.Embedding(vocab_size, emb_dim)
         self.pos_emb_table = nn.Embedding(context_size, emb_dim)
-        self.scaled_dot_prod_att = ScaledDotProdSelfAtt(emb_dim, emb_dim, context_size)
+        self.multi_head_att = MultiHeadAtt(emb_dim, context_size, head_size=emb_dim//4, n_heads=4)
         self.linear = nn.Linear(emb_dim, vocab_size)
 
     def forward(self, x, targets=None):
@@ -50,7 +60,7 @@ class CharV5(nn.Module):
         pos_emb = self.pos_emb_table(seq_indexes) # pos_emb -> (S, E)
         x = tkn_emb + pos_emb # (B, S, E)
 
-        x = self.scaled_dot_prod_att(x) # (B, S, E)
+        x = self.multi_head_att(x) # (B, S, E)
 
         logits = self.linear(x) # x (B, S, E) @ linear (E, V) -> (B, S, V); V = vocab size
 

@@ -1,7 +1,7 @@
 #%% Imports
 import torch
 from char_level_loader import CharLoader
-from char_level.v5.v5_decoder import CharV4, train
+from v5_decoder import CharV5, train
 import matplotlib.pyplot as plt
 import numpy as np
 import random
@@ -18,14 +18,14 @@ def setup_seed(seed):
 SEED = 42
 PATH = '../data/shakespeare.txt'
 
-STEPS = 5000 # num of training steps
+STEPS = 10000 # num of training steps
 BATCH_SIZE = 32
-CONTEXT_SIZE = 8
+CONTEXT_SIZE = 32
 EMBEDDING_DIM = 32
 LR = 1e-3
 
-EVAL_EVERY = 200 # eval every X train steps
-EVAL_STEPS = 200
+EVAL_EVERY = 100 # eval every 100 train steps
+EVAL_STEPS = 100
 
 setup_seed(SEED)
 
@@ -39,7 +39,7 @@ print("batch x:",loader.decode(x))
 print("batch y:",loader.decode(y))
 
 #%% Test untrained model
-model = CharV4(loader.vocab_size, CONTEXT_SIZE, EMBEDDING_DIM).cuda()
+model = CharV5(loader.vocab_size, CONTEXT_SIZE, EMBEDDING_DIM).cuda()
 
 # Loss
 logits, loss = model(x, y)

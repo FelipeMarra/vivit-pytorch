@@ -1,9 +1,18 @@
 2nd Bigram Model
     |_ Vocab Embedding table (vocab_size, emb_dim)
     |_ Position Embedding table (Learned positional embedding) (context_size, emb_dim)
-    |_ AvgSelfAtt (will keep the input dim)
+    |_ MultiHeadAtt (4 heads, emb_dim//4, will keep the input dim)
     |_ Linear (emb_dim, vocab_size)
 
-    Final losses: train 2.9192; eval 2.8919 (10,000 steps, avg every 10 steps)
+    Final losses: train 2.1261; eval 2.1264 (10,000 steps, eval for 100 steps every 100 steps, batch 32, context 32, emb dim 32)
 
-    Average Self Attention made it worst 😢
+    Finally we improved uppon v2 😁
+
+    Example Generation:
+        conan, be Mich fold conce yought sto hind.
+
+        CENGE RIV:
+        The prome mach notl hais he is willl upore canse wilth me secess thee?
+        Pmanotens;'-lll hy ing I he wouls onn!-
+        Whin We het lece, ferver: youre:
+        T
