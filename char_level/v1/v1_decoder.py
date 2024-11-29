@@ -45,7 +45,7 @@ class CharV1(nn.Module):
 
         return generated
 
-def train(model:nn.Module, loader, steps=100, avg_steps=10):
+def train(model:nn.Module, loader, steps=100, avg_steps=100):
     # create a PyTorch optimizer
     optimizer = torch.optim.AdamW(model.parameters(), lr=1e-3)
 

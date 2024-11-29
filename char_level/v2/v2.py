@@ -18,9 +18,9 @@ setup_seed(42)
 
 #%% Consts
 PATH = '../data/shakespeare.txt'
-BATCH_SIZE = 4
-CONTEXT_SIZE = 8
-EMBEDDING_DIM = 10
+BATCH_SIZE = 32
+CONTEXT_SIZE = 32
+EMBEDDING_DIM = 32
 
 #%% Load some Shakespeare
 loader = CharLoader(PATH, BATCH_SIZE, CONTEXT_SIZE)
@@ -51,7 +51,7 @@ def gen_test():
 gen_test()
 
 #%% Train and check results
-losses = train(model, loader, steps=1500)
+losses = train(model, loader, steps=10000)
 plt.plot(range(len(losses)), losses)
 print("Final loss:", losses[-1])
 

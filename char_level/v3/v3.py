@@ -19,12 +19,12 @@ SEED = 42
 PATH = '../data/shakespeare.txt'
 
 STEPS = 10000 # num of training steps
-BATCH_SIZE = 4
-CONTEXT_SIZE = 8
-EMBEDDING_DIM = 10
+BATCH_SIZE = 32
+CONTEXT_SIZE = 32
+EMBEDDING_DIM = 32
 LR = 1e-3
 
-EVAL_EVERY = 50 # eval every 50 train steps
+EVAL_EVERY = 100 # eval every 50 train steps
 EVAL_STEPS = 100
 
 setup_seed(SEED)

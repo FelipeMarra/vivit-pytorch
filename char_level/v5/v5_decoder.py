@@ -27,7 +27,7 @@ class ScaledDotProdSelfAtt(nn.Module):
 
         return x
 
-class CharV4(nn.Module):
+class CharV5(nn.Module):
     def __init__(self, vocab_size, context_size, emb_dim):
         super().__init__()
         self.vocab_size = vocab_size
