@@ -28,10 +28,10 @@ class AttHead(nn.Module):
         return x
 
 class MultiHeadAtt(nn.Module):
-    def __init__(self, emd_dim, context_size, head_size, n_heads):
+    def __init__(self, emb_dim, context_size, head_size, n_heads):
         super().__init__()
 
-        self.heads = nn.ModuleList([AttHead(emd_dim, context_size, head_size) for _ in range(n_heads)])
+        self.heads = nn.ModuleList([AttHead(emb_dim, context_size, head_size) for _ in range(n_heads)])
 
     def forward(self, x):
         # cat in the E dimention. if head size is E/2 and n_heads is 2, out will still be (B, S, E) 

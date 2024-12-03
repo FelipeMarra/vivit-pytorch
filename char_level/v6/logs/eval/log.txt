@@ -1,0 +1,9 @@
+Transformer Decoder Model
+    |_ Vocab Embedding table (vocab_size, emb_dim)
+    |_ Position Embedding table (Learned positional embedding) (context_size, emb_dim)
+    |_ DecoderBlock (6 heads, will keep the input dim)
+    |_ Linear (emb_dim, vocab_size)
+
+    Final losses: train 2.1261; eval 2.1264 (10,000 steps, eval for 100 steps every 100 steps, batch 32, context 32, emb dim 32)
+
+    Example Generation:
