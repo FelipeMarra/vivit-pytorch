@@ -27,7 +27,18 @@ class KineticsDataset(Dataset):
         video_path = self.videos_paths[index]
         video_class = self.videos_classes[index]
 
-        streamer = torchaudio.io.StreamReader(video_path)
+        failed = True
+        while failed:
+            try:
+                streamer = torchaudio.io.StreamReader(video_path)
+                failed = False
+            except:
+                print("FAILED on loading video:", video_path)
+                # in case of currupted video get another randomly
+                index = torch.randint(0, len(self.videos_paths), (1,)).item()
+                video_path = self.videos_paths[index]
+                video_class = self.videos_classes[index]
+
         info = streamer.get_src_stream_info(0)
 
         streamer.add_basic_video_stream(

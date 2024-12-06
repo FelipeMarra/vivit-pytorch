@@ -3,12 +3,18 @@ import math
 import torch
 import torchaudio
 
-KINETICS_PATH = '/media/felipe/32740855-6a5b-4166-b047-c8177bb37be1/kinetics-dataset/k400/arranged/'
-video_path = '/home/felipe/Desktop/k400/val/-0byZyStAYQ_000054_000064.mp4'
+corrupted_video_path = '/home/felipe/Desktop/k400/videos/train/braiding hair/B6GxQKcL7IY_000213_000223.mp4'
+working_video_path = '/home/felipe/Desktop/k400/videos/train/braiding hair/B7vIU2dHer4_000002_000012.mp4'
+
 n_frames = 32
 
 #%%
-streamer = torchaudio.io.StreamReader(video_path)
+try:
+    streamer = torchaudio.io.StreamReader(corrupted_video_path)
+except:
+    print("BBBBBBBBBBBBBBBBB")
+    streamer = torchaudio.io.StreamReader(working_video_path)
+
 info = streamer.get_src_stream_info(0)
 
 print(info.frame_rate, info.num_frames, info.num_frames/info.frame_rate)
@@ -33,7 +39,7 @@ streamer.add_basic_video_stream(
 )
 
 streamer.seek(random_start)
-chunk = next(iter(streamer.stream()))[0] #.transpose(1,0)
+chunk = next(iter(streamer.stream()))[0]
 
 #%%
 print(chunk.shape)
