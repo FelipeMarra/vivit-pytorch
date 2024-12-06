@@ -13,7 +13,7 @@ CROP_SIZE = 224
 #%%
 # Transforms will occur as [T, C, H, W], before chuncks are transposed to [C, T, H, W]
 train_transform = v2.Compose([
-        #v2.Normalize((1,), (0,), inplace=True),
+        #TODO: Fazer na mao mesmo v2.Normalize((1,), (0,), inplace=True),
         v2.RandomCrop((CROP_SIZE, CROP_SIZE))
     ])
 
@@ -35,10 +35,10 @@ B, C, T, H, W = videos.shape
 tublet_size = (2, 16, 16)
 
 tokenizer = nn.Conv3d(
-        in_channels=3,
-        out_channels=EMB_DIM,
         kernel_size=tublet_size,
-        stride=tublet_size
+        stride=tublet_size,
+        in_channels=3,
+        out_channels=EMB_DIM
     )
 print('tokenizer weights:', tokenizer.weight.shape)
 
