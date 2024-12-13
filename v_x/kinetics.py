@@ -4,16 +4,18 @@ import math
 import torch
 import torchaudio
 from torch.utils.data import Dataset
+from torchvision.transforms import v2
 
 #%%
 # download with https://github.com/cvdfoundation/kinetics-dataset
 class KineticsDataset(Dataset):
-    def __init__(self, root:str, split:str, n_frames:int, transforms, stride:int=2):
+    def __init__(self, root:str, split:str, n_frames:int, transforms, crop_size=224, stride:int=2):
         super().__init__()
         self.root = os.path.join(root, split)
         self.stride = stride
         self.n_frames = n_frames
         self.transforms = transforms
+        self.crop_size = crop_size
 
         self.videos_paths, self.videos_classes, self.idx2class = self.get_videos()
 
@@ -31,6 +33,23 @@ class KineticsDataset(Dataset):
         while failed:
             try:
                 streamer = torchaudio.io.StreamReader(video_path)
+                info = streamer.get_src_stream_info(0)
+
+                streamer.add_basic_video_stream(
+                    frames_per_chunk = self.n_frames,
+                    # Change the frame rate to drop frames (temporal stride of self.stride). No interpolation is performed.
+                    frame_rate= math.ceil(info.frame_rate/self.stride)
+                )
+                random_start = self.get_random_start(info)
+
+                if random_start < 0:
+                    print("FAILED on getting a random start. Not enough frames in video:", video_path)
+
+                streamer.seek(random_start)
+
+                # Tensor[T, C, H, W]
+                chunk = next(iter(streamer.stream()))[0]
+
                 failed = False
             except:
                 print("FAILED on loading video:", video_path)
@@ -38,19 +57,6 @@ class KineticsDataset(Dataset):
                 index = torch.randint(0, len(self.videos_paths), (1,)).item()
                 video_path = self.videos_paths[index]
                 video_class = self.videos_classes[index]
-
-        info = streamer.get_src_stream_info(0)
-
-        streamer.add_basic_video_stream(
-            frames_per_chunk = self.n_frames,
-            # Change the frame rate to drop frames (temporal stride of self.stride). No interpolation is performed.
-            frame_rate= math.ceil(info.frame_rate/self.stride)
-        )
-        random_start = self.get_random_start(info)
-        streamer.seek(random_start)
-
-        # Tensor[T, C, H, W]
-        chunk = next(iter(streamer.stream()))[0]
 
         T = chunk.shape[0]
         if T < self.n_frames:
@@ -104,7 +110,9 @@ class KineticsDataset(Dataset):
         max_second = int(duration - seconds_needed)
 
         random_start = 0
-        if max_second >= 0:
+        if max_second > 0:
             random_start = torch.randint(0, max_second, (1,)).item()
+        if max_second < 0:
+            random_start = -1
 
         return random_start

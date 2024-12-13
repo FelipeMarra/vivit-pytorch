@@ -1,60 +1,69 @@
 #%%
 from kinetics import KineticsDataset
 from torch.utils.data import DataLoader
-from torch import nn
 import torch
 from torchvision.transforms import v2
+from vivit.vivit import ViViT
+from train_utils import train
 
-KINETICS_PATH = '/media/felipe/32740855-6a5b-4166-b047-c8177bb37be1/kinetics-dataset/k400/arranged/'
-N_FRAMES = 32
-EMB_DIM = 512
+import matplotlib.pyplot as plt
+
+# Dataset params
+KINETICS_PATH = '/home/felipe/Desktop/k400/videos'
+N_CLASSES = 35
+
+# Video Params
+N_FRAMES = 16
 CROP_SIZE = 224
 
-#%%
-# Transforms will occur as [T, C, H, W], before chuncks are transposed to [C, T, H, W]
-train_transform = v2.Compose([
-        #TODO: Fazer na mao mesmo v2.Normalize((1,), (0,), inplace=True),
-        v2.RandomCrop((CROP_SIZE, CROP_SIZE))
-    ])
-
-train_loader = DataLoader(KineticsDataset(KINETICS_PATH, 'train', N_FRAMES, train_transform), batch_size=8, shuffle=True, num_workers=2)
-
-batch = next(iter(train_loader))
-
-videos = batch['video']
-classes = batch['class']
-paths = batch['path']
-
-# Tensor[B, C, T, H, W]
-print("batch videos shape:", videos.shape)
-B, C, T, H, W = videos.shape
-
-# %%
+# Transformer Params
+EMB_DIM = 512
+N_HEADS = 8 # head_size = emb_dim // n_heads
+N_BLOCKS = 3 # num of decoder blocks
 # tublets w/ 16x16 spatial patches and 2 time steps
 #              T,  H,  W
-tublet_size = (2, 16, 16)
+TUBLET_SIZE = (2, 16, 16)
+TUBLET_T,  TUBLET_H,  TUBLET_W = TUBLET_SIZE
+N_PATCHES = (N_FRAMES/TUBLET_T) * (CROP_SIZE/TUBLET_H) * (CROP_SIZE/TUBLET_W)
 
-tokenizer = nn.Conv3d(
-        kernel_size=tublet_size,
-        stride=tublet_size,
-        in_channels=3,
-        out_channels=EMB_DIM
-    )
-print('tokenizer weights:', tokenizer.weight.shape)
+assert N_PATCHES.is_integer()
+N_PATCHES = int(N_PATCHES)
+
+# General Params
+BATCH_SIZE = 4
+EPOCHS = 1
+LR = 1e-4
+EVAL_EVERY=250
+
+#%% 
+# Loaders
+# Transforms will occur as [T, C, H, W], before chuncks are transposed to [C, T, H, W]
+train_transform = v2.Compose([
+        #TODO:Normalize?
+        v2.RandomResizedCrop((CROP_SIZE, CROP_SIZE))
+    ])
+
+train_loader = DataLoader(KineticsDataset(KINETICS_PATH, 'train', N_FRAMES, train_transform), batch_size=BATCH_SIZE, shuffle=True, num_workers=2)
+val_loader = DataLoader(KineticsDataset(KINETICS_PATH, 'val', N_FRAMES, train_transform), batch_size=BATCH_SIZE, shuffle=True, num_workers=2)
+test_loader = DataLoader(KineticsDataset(KINETICS_PATH, 'test', N_FRAMES, train_transform), batch_size=BATCH_SIZE, shuffle=True, num_workers=2)
+
+#%% 
+# Model
+model = ViViT(N_CLASSES, N_PATCHES, TUBLET_SIZE, EMB_DIM, N_HEADS, N_BLOCKS)
+
+#%% 
+# Train
+train_loss, eval_loss = train(model, train_loader, val_loader, 
+                              epochs=EPOCHS, lr=LR, eval_every=EVAL_EVERY)
+
+#%% 
+# Plot losses
+plt.plot(train_loss, label='train')
+plt.plot(eval_loss, label='eval')
+print(f"Final losses: train {train_loss[-1]:.4f}; eval {eval_loss[-1]:.4f}")
+leg = plt.legend()
+plt.show()
 
 #%%
-tokens:torch.Tensor = tokenizer(videos)
-print(tokens.shape)
-
-# %%
-# Put embeds in function of the number of patches
-tokens = tokens.view(B, -1, EMB_DIM)
-print(tokens.shape)
-
-# %%
-print(paths)
-
-for video_class in classes:
-    video_class = video_class.item()
-    print(video_class, train_loader.dataset.idx2class[video_class])
-# %%
+# Save model
+torch.save(model.state_dict(), './model.pth')

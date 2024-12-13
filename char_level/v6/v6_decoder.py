@@ -13,7 +13,7 @@ class CharV6(nn.Module):
         self.tkn_emb_table = nn.Embedding(vocab_size, emb_dim)
         self.pos_emb_table = nn.Embedding(context_size, emb_dim)
         self.blocks = nn.Sequential(*[DecoderBlock(emb_dim, context_size, n_heads) for _ in range(n_blocks)])
-        self.norm = nn.LayerNorm(emb_dim, vocab_size)
+        self.norm = nn.LayerNorm(emb_dim, vocab_size) # S, E
         self.linear = nn.Linear(emb_dim, vocab_size)
 
     def forward(self, x, targets=None):
