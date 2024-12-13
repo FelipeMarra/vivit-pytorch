@@ -48,7 +48,7 @@ def train(model:nn.Module, train_loader, val_loader, epochs, lr=1e-3, eval_every
             loss.backward()
             optimizer.step()
 
-            if (b_idx+1) % eval_every == 0:
+            if (b_idx+1) % eval_every == 0 or b_idx+1 == len(train_loader):
                 mean_train_loss = running_loss/eval_every
                 train_loss.append(mean_train_loss)
                 running_loss = 0

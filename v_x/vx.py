@@ -13,13 +13,13 @@ KINETICS_PATH = '/home/felipe/Desktop/k400/videos'
 N_CLASSES = 35
 
 # Video Params
-N_FRAMES = 16
+N_FRAMES = 32
 CROP_SIZE = 224
 
 # Transformer Params
-EMB_DIM = 512
-N_HEADS = 8 # head_size = emb_dim // n_heads
-N_BLOCKS = 3 # num of decoder blocks
+EMB_DIM = 1024
+N_HEADS = 16 # head_size = emb_dim // n_heads
+N_BLOCKS = 12 # num of decoder blocks
 # tublets w/ 16x16 spatial patches and 2 time steps
 #              T,  H,  W
 TUBLET_SIZE = (2, 16, 16)
@@ -30,10 +30,10 @@ assert N_PATCHES.is_integer()
 N_PATCHES = int(N_PATCHES)
 
 # General Params
-BATCH_SIZE = 4
-EPOCHS = 1
-LR = 1e-4
-EVAL_EVERY=250
+BATCH_SIZE = 8
+EPOCHS = 5
+LR = 1e-3
+EVAL_EVERY = 250
 
 #%% 
 # Loaders
@@ -58,11 +58,12 @@ train_loss, eval_loss = train(model, train_loader, val_loader,
 
 #%% 
 # Plot losses
+fig = plt.figure()
 plt.plot(train_loss, label='train')
 plt.plot(eval_loss, label='eval')
+fig.savefig('plot.png', dpi=fig.dpi)
+
 print(f"Final losses: train {train_loss[-1]:.4f}; eval {eval_loss[-1]:.4f}")
-leg = plt.legend()
-plt.show()
 
 #%%
 # Save model
