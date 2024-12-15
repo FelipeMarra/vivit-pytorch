@@ -96,29 +96,30 @@ def test(model:nn.Module, loader:DataLoader):
     return losses.mean(), acc_sum/n_examples
 
 
-def test_lr(model:nn.Module, loader):
-    exponents = torch.linspace(-3, 0, 1000)
+# TODO:
+# def test_lr(model:nn.Module, loader):
+#     exponents = torch.linspace(-3, 0, 1000)
 
-    losses = []
-    for exp in exponents:
-        lr = 10**exp
-        loss = self.forward(self.X_train, self.Y_train)
+#     losses = []
+#     for exp in exponents:
+#         lr = 10**exp
+#         loss = self.forward(self.X_train, self.Y_train)
 
-        if self.verbose: print('LR:', lr, 'Loss', loss.item())
-        losses.append(loss.item())
+#         if self.verbose: print('LR:', lr, 'Loss', loss.item())
+#         losses.append(loss.item())
 
-        for p in self.params:
-            p.grad = None
+#         for p in self.params:
+#             p.grad = None
 
-        loss.backward()
+#         loss.backward()
 
-        for p in self.params:
-            p.data += -lr * p.grad
+#         for p in self.params:
+#             p.data += -lr * p.grad
 
-    # Reset the model
-    self.set_params()
+#     # Reset the model
+#     self.set_params()
 
-    return exponents, losses
+#     return exponents, losses
 
 def write_losses(path:str, train_loss:list, eval_loss:list):
     losses_dic = {
