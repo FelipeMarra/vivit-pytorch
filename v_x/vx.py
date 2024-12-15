@@ -9,8 +9,8 @@ from train_utils import train, test
 import matplotlib.pyplot as plt
 
 # Dataset params
-#KINETICS_PATH = '/home/felipe/Desktop/k400/videos/'
-KINETICS_PATH = '/root/kinetics_subset'
+KINETICS_PATH = '/home/felipe/Desktop/k400/videos/'
+#KINETICS_PATH = '/root/kinetics_subset'
 N_CLASSES = 35
 
 # Video Params
@@ -51,6 +51,7 @@ test_loader = DataLoader(KineticsDataset(KINETICS_PATH, 'test', N_FRAMES, train_
 #%% 
 # Model
 model = ViViT(N_CLASSES, N_PATCHES, TUBLET_SIZE, EMB_DIM, N_HEADS, N_BLOCKS)
+model = model.half()
 
 #%% 
 # Train
@@ -72,9 +73,10 @@ torch.save(model.state_dict(), './model.pth')
 
 #%%
 # Test
-#model = ViViT(N_CLASSES, N_PATCHES, TUBLET_SIZE, EMB_DIM, N_HEADS, N_BLOCKS)
-#state_dict = torch.load('../model.pth', weights_only=True)
-#model.load_state_dict(state_dict)
+# model = ViViT(N_CLASSES, N_PATCHES, TUBLET_SIZE, EMB_DIM, N_HEADS, N_BLOCKS)
+# model = model.half()
+# state_dict = torch.load('../model.pth', weights_only=True)
+# model.load_state_dict(state_dict)
 loss, acc = test(model, test_loader)
 
 print(f"Test Loss {loss}, Acc {acc}")

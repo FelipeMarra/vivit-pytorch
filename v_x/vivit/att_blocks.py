@@ -11,7 +11,7 @@ class AttHead(nn.Module):
         self.dropout = nn.Dropout(0.2)
 
     def forward(self, x:torch.Tensor) -> torch.Tensor:
-        _, S, E = x.shape # (B, S, E)
+        _, _, E = x.shape # (B, S, E)
 
         q:torch.Tensor = self.wq(x) # x (B, S, E) @ wq (E, E) = q (B, S, E)
         k:torch.Tensor = self.wk(x) # x (B, S, E) @ wk (E, E) = k (B, S, E)
