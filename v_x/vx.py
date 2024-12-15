@@ -1,10 +1,9 @@
 #%%
 from kinetics import KineticsDataset
 from torch.utils.data import DataLoader
-import torch
 from torchvision.transforms import v2
 from vivit.vivit import ViViT
-from train_utils import train, test
+from train_utils import train, test, write_losses
 
 import matplotlib.pyplot as plt
 
@@ -53,10 +52,16 @@ test_loader = DataLoader(KineticsDataset(KINETICS_PATH, 'test', N_FRAMES, train_
 model = ViViT(N_CLASSES, N_PATCHES, TUBLET_SIZE, EMB_DIM, N_HEADS, N_BLOCKS)
 model = model.half()
 
+total_params = sum(p.numel() for p in model.parameters())
+print(f"Number of parameters: {total_params}")
+print(model)
+
 #%% 
 # Train
 train_loss, eval_loss = train(model, train_loader, val_loader, 
                               epochs=EPOCHS, lr=LR, eval_every=EVAL_EVERY)
+
+write_losses('./losses.json', train_loss, eval_loss)
 
 #%% 
 # Plot losses
@@ -66,10 +71,6 @@ plt.plot(eval_loss, label='eval')
 fig.savefig('plot.png', dpi=fig.dpi)
 
 print(f"Final losses: train {train_loss[-1]:.4f}; eval {eval_loss[-1]:.4f}")
-
-#%%
-# Save model
-torch.save(model.state_dict(), './model.pth')
 
 #%%
 # Test

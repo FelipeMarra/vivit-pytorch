@@ -1,3 +1,4 @@
+import json
 import torch
 import torch.nn as nn
 from tqdm import tqdm
@@ -41,6 +42,10 @@ def train(model:nn.Module, train_loader:DataLoader, val_loader:DataLoader, epoch
                 loss_item = loss.item()
                 running_loss += loss_item
 
+        #%%
+        # Save model
+        torch.save(model.state_dict(), f"./model_t_{mean_train_loss:.4f}_e_{mean_eval_loss:.4f}.pth")
+
     return train_loss, eval_loss
 
 @torch.no_grad()
@@ -60,7 +65,7 @@ def eval(model:nn.Module, loader:DataLoader):
 
     model = model.train()
 
-    return losses.mean()
+    return losses.mean().item()
 
 @torch.no_grad()
 def test(model:nn.Module, loader:DataLoader):
@@ -114,3 +119,12 @@ def test_lr(model:nn.Module, loader):
     self.set_params()
 
     return exponents, losses
+
+def write_losses(path:str, train_loss:list, eval_loss:list):
+    losses_dic = {
+        'train': str(train_loss),
+        'eval': str(eval_loss)
+    }
+
+    with open(path, "w") as json_file: 
+        json.dump(losses_dic, json_file, indent=4)
