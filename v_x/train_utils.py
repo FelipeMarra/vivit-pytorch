@@ -37,7 +37,7 @@ def train(model:nn.Module, train_loader, val_loader, epochs, lr=1e-3, eval_every
         for b_idx, batch in tqdm(enumerate(train_loader), total=len(train_loader), desc="Train"):
             xb = batch['video'].cuda()
             yb = batch['class'].cuda()
-            tqdm.write(f"Y batch {yb}")
+            #tqdm.write(f"Y batch {yb}")
             #paths = batch['path']
 
             # evaluate the loss

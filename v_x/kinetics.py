@@ -29,7 +29,10 @@ class KineticsDataset(Dataset):
         video_path = self.videos_paths[index]
         video_class = self.videos_classes[index]
 
+        stride = self.stride
+        not_enough_frames = False
         failed = True
+        last_failed_video = ''
         while failed:
             try:
                 streamer = torchaudio.io.StreamReader(video_path)
@@ -37,13 +40,13 @@ class KineticsDataset(Dataset):
 
                 streamer.add_basic_video_stream(
                     frames_per_chunk = self.n_frames,
-                    # Change the frame rate to drop frames (temporal stride of self.stride). No interpolation is performed.
-                    frame_rate= math.ceil(info.frame_rate/self.stride)
+                    # Change the frame rate to drop frames (temporal stride). No interpolation is performed.
+                    frame_rate= math.ceil(info.frame_rate/stride)
                 )
-                random_start = self.get_random_start(info)
+                random_start = self.get_random_start(info, stride)
 
                 if random_start < 0:
-                    print("FAILED on getting a random start. Not enough frames in video:", video_path)
+                    not_enough_frames = True
 
                 streamer.seek(random_start)
 
@@ -52,11 +55,19 @@ class KineticsDataset(Dataset):
 
                 failed = False
             except:
-                print("FAILED on loading video:", video_path)
-                # in case of currupted video get another randomly
-                index = torch.randint(0, len(self.videos_paths), (1,)).item()
-                video_path = self.videos_paths[index]
-                video_class = self.videos_classes[index]
+                if not_enough_frames and last_failed_video != video_path:
+                    print("FAILED on getting a random start. Not enough frames in video:", video_path, "Trying with half of the stride")
+                    stride = self.stride // 2
+                    not_enough_frames = False
+                else:
+                    stride = self.stride
+                    print("FAILED on loading video:", video_path)
+                    # in case of currupted video get another randomly
+                    index = torch.randint(0, len(self.videos_paths), (1,)).item()
+                    video_path = self.videos_paths[index]
+                    video_class = self.videos_classes[index]
+
+                last_failed_video = video_path
 
         T = chunk.shape[0]
         if T < self.n_frames:
@@ -97,13 +108,13 @@ class KineticsDataset(Dataset):
 
         return videos_paths, videos_classes, idx2class
 
-    def get_random_start(self, info):
+    def get_random_start(self, info, stride):
         """
             Returns the maximum time, in seconds, in the video that still grants that if we start
-            from it we'll be able to sample n_frames*self.stride frames. That's because we need at 
-            least n_frames*self.stride/frame_rate seconds to sample n_frames with stride self.stride
+            from it we'll be able to sample n_frames*stride frames. That's because we need at 
+            least n_frames*stride/frame_rate seconds to sample n_frames with stride stride
         """
-        seconds_needed = math.ceil((self.n_frames * self.stride)/ info.frame_rate)
+        seconds_needed = math.ceil((self.n_frames * stride)/ info.frame_rate)
         duration = math.floor(info.num_frames/info.frame_rate)
 
         # Chose random start restricted to our seconds_needed

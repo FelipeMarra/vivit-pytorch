@@ -17,7 +17,7 @@ class ViViT(nn.Module):
 
     def forward(self, x):
         # x -> (B, C, T, H, W)
-        print(x.shape)
+        #print(x.shape)
         B, C, T, H, W = x.shape
 
         # tokenize video and add positional embeddings
@@ -28,22 +28,22 @@ class ViViT(nn.Module):
         pos_emb = self.pos_emb_table(seq_indexes) # pos_emb -> (P, emb_dim);  P = n patches
         x = tkn_emb + pos_emb # (B, S, E); E = embedding size
 
-        tqdm.write(f"X shape before cls {x.shape}")
+        #tqdm.write(f"X shape before cls {x.shape}")
         # Append cls token
         cls = torch.zeros(B, 1, self.emb_dim, device='cuda', dtype=torch.float32)
         x = torch.cat((cls, x), dim=1)
-        tqdm.write(f"X shape afeter cls {x.shape}")
-        tqdm.write(f"CLS is in the first position {x[:, 0]}")
+        #tqdm.write(f"X shape afeter cls {x.shape}")
+        #tqdm.write(f"CLS is in the first position {x[:, 0]}")
 
         # Apply transformer blocks
         x = self.blocks(x) # (B, P, E)
 
         # Get cls tokens
         x = x[:, 0] # (B, 1, E)
-        tqdm.write(f"CLS {cls.shape}")
+        #tqdm.write(f"CLS {cls.shape}")
 
         x = self.norm(x)
         logits = self.linear(x).squeeze() # x (B, 1, E) @ linear (E, n_classes) -> (B, 1, n_classes)
-        tqdm.write(f"Logits {logits.shape}")
+        #tqdm.write(f"Logits {logits.shape}")
 
         return logits
