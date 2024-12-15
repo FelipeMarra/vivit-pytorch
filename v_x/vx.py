@@ -4,22 +4,23 @@ from torch.utils.data import DataLoader
 import torch
 from torchvision.transforms import v2
 from vivit.vivit import ViViT
-from train_utils import train
+from train_utils import train, test
 
 import matplotlib.pyplot as plt
 
 # Dataset params
+#KINETICS_PATH = '/home/felipe/Desktop/k400/videos/'
 KINETICS_PATH = '/root/kinetics_subset'
 N_CLASSES = 35
 
 # Video Params
-N_FRAMES = 32
+N_FRAMES = 16
 CROP_SIZE = 224
 
 # Transformer Params
-EMB_DIM = 1024 
+EMB_DIM = 512 
 N_HEADS = 8 # head_size = emb_dim // n_heads
-N_BLOCKS = 6 # num of decoder blocks
+N_BLOCKS = 3 # num of decoder blocks
 # tublets w/ 16x16 spatial patches and 2 time steps
 #              T,  H,  W
 TUBLET_SIZE = (2, 16, 16)
@@ -68,3 +69,12 @@ print(f"Final losses: train {train_loss[-1]:.4f}; eval {eval_loss[-1]:.4f}")
 #%%
 # Save model
 torch.save(model.state_dict(), './model.pth')
+
+#%%
+# Test
+#model = ViViT(N_CLASSES, N_PATCHES, TUBLET_SIZE, EMB_DIM, N_HEADS, N_BLOCKS)
+#state_dict = torch.load('../model.pth', weights_only=True)
+#model.load_state_dict(state_dict)
+loss, acc = test(model, test_loader)
+
+print(f"Test Loss {loss}, Acc {acc}")

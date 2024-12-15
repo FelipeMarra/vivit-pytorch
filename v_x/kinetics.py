@@ -4,7 +4,6 @@ import math
 import torch
 import torchaudio
 from torch.utils.data import Dataset
-from torchvision.transforms import v2
 
 #%%
 # download with https://github.com/cvdfoundation/kinetics-dataset
