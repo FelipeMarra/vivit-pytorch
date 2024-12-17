@@ -16,9 +16,11 @@ def train(model:nn.Module, train_loader:DataLoader, val_loader:DataLoader, epoch
     train_loss = []
     eval_loss = []
     running_loss = 0
-    for _ in range(epochs):
+    mean_train_loss = 0
+    mean_eval_loss = 0
+    for e_idx in range(epochs):
         for b_idx, batch in tqdm(enumerate(train_loader), total=len(train_loader), desc="Train"):
-            xb = batch['video'].half().cuda()
+            xb = batch['video'].cuda()
             yb = batch['class'].cuda()
 
             # evaluate the loss
@@ -29,22 +31,24 @@ def train(model:nn.Module, train_loader:DataLoader, val_loader:DataLoader, epoch
             loss.backward()
             optimizer.step()
 
+            loss_item = loss.item()
+            running_loss += loss_item
+
             if (b_idx+1) % eval_every == 0 or b_idx+1 == len(train_loader):
                 mean_train_loss = running_loss/eval_every
                 train_loss.append(mean_train_loss)
-                running_loss = 0
 
                 mean_eval_loss = eval(model, val_loader)
                 eval_loss.append(mean_eval_loss)
 
-                tqdm.write(f"iter {b_idx+1} | train loss: {mean_train_loss:.4f}, eval loss: {mean_eval_loss:.4f}")
-            else:
-                loss_item = loss.item()
-                running_loss += loss_item
+                tqdm.write(f"\n iter {b_idx+1} | train loss: {mean_train_loss:.4f}, eval loss: {mean_eval_loss:.4f} \n")
+
+                running_loss = 0
 
         #%%
         # Save model
         torch.save(model.state_dict(), f"./model_t_{mean_train_loss:.4f}_e_{mean_eval_loss:.4f}.pth")
+        write_losses(f'./losses_e_{e_idx}.json', train_loss, eval_loss)
 
     return train_loss, eval_loss
 
@@ -56,7 +60,7 @@ def eval(model:nn.Module, loader:DataLoader):
 
     losses = torch.zeros(len(loader))
     for b_idx, batch in tqdm(enumerate(loader), total=len(loader), desc="Eval"):
-        xb = batch['video'].half().cuda()
+        xb = batch['video'].cuda()
         yb = batch['class'].cuda()
 
         logits = model(xb)
@@ -76,7 +80,7 @@ def test(model:nn.Module, loader:DataLoader):
     losses = torch.zeros(len(loader))
     acc_sum = 0
     for b_idx, batch in tqdm(enumerate(loader), total=len(loader), desc="Test"):
-        xb = batch['video'].half().cuda()
+        xb = batch['video'].cuda()
         yb = batch['class'].cuda()
 
         logits = model(xb)
@@ -95,31 +99,6 @@ def test(model:nn.Module, loader:DataLoader):
     n_examples = len(loader)*loader.batch_size
     return losses.mean(), acc_sum/n_examples
 
-
-# TODO:
-# def test_lr(model:nn.Module, loader):
-#     exponents = torch.linspace(-3, 0, 1000)
-
-#     losses = []
-#     for exp in exponents:
-#         lr = 10**exp
-#         loss = self.forward(self.X_train, self.Y_train)
-
-#         if self.verbose: print('LR:', lr, 'Loss', loss.item())
-#         losses.append(loss.item())
-
-#         for p in self.params:
-#             p.grad = None
-
-#         loss.backward()
-
-#         for p in self.params:
-#             p.data += -lr * p.grad
-
-#     # Reset the model
-#     self.set_params()
-
-#     return exponents, losses
 
 def write_losses(path:str, train_loss:list, eval_loss:list):
     losses_dic = {

@@ -1,4 +1,3 @@
-import torch
 import torch.nn as nn
 from vivit.att_blocks import MultiHeadAtt
 
@@ -27,16 +26,12 @@ class EncoderBlock(nn.Module):
         self.ff = FeedForward(emb_dim)
 
     def forward(self, x):
-        with torch.autocast('cuda'):
-            # pre-norm, multihead and add
-            x = self.norm1(x)
-        x = x.half()
+        # pre-norm, multihead and add
+        x = self.norm1(x)
         x = x + self.multi_head_att(x)
 
-        with torch.autocast('cuda'):
-            # pre-norm, feed forward, & add
-            x = self.norm2(x)
-        x = x.half()
+        # pre-norm, feed forward, & add
+        x = self.norm2(x)
         x = x + self.ff(x)
 
         return x

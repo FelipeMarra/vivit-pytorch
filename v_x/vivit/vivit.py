@@ -36,9 +36,7 @@ class ViViT(nn.Module):
         # Get cls tokens
         x = x[:, 0] # (B, 1, E)
 
-        with torch.autocast('cuda'):
-            x = self.norm(x)
-        x = x.half()
-        logits = self.linear(x).squeeze() # x (B, 1, E) @ linear (E, n_classes) -> (B, 1, n_classes)
+        x = self.norm(x)
+        logits = self.linear(x).squeeze(dim=1) # x (B, 1, E) @ linear (E, n_classes) -> (B, 1, n_classes)
 
-        return logits.float()
+        return logits

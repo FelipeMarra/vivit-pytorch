@@ -1,25 +1,26 @@
 #%%
 from kinetics import KineticsDataset
+import torch
 from torch.utils.data import DataLoader
 from torchvision.transforms import v2
 from vivit.vivit import ViViT
-from train_utils import train, test, write_losses
+from train_utils import train, test
 
 import matplotlib.pyplot as plt
 
 # Dataset params
-KINETICS_PATH = '/home/felipe/Desktop/k400/videos/'
-#KINETICS_PATH = '/root/kinetics_subset'
-N_CLASSES = 35
+#KINETICS_PATH = '/media/felipe/32740855-6a5b-4166-b047-c8177bb37be1/kinetics-dataset/k400/arranged'
+KINETICS_PATH = '/root/kinetics-dataset/k400/videos'
+N_CLASSES = 400
 
 # Video Params
-N_FRAMES = 16
+N_FRAMES = 32
 CROP_SIZE = 224
 
 # Transformer Params
-EMB_DIM = 512 
+EMB_DIM = 768 
 N_HEADS = 8 # head_size = emb_dim // n_heads
-N_BLOCKS = 3 # num of decoder blocks
+N_BLOCKS = 8 # num of decoder blocks
 # tublets w/ 16x16 spatial patches and 2 time steps
 #              T,  H,  W
 TUBLET_SIZE = (2, 16, 16)
@@ -33,7 +34,7 @@ N_PATCHES = int(N_PATCHES)
 BATCH_SIZE = 4
 EPOCHS = 5
 LR = 1e-3
-EVAL_EVERY = 250
+EVAL_EVERY = 10000
 
 #%% 
 # Loaders
@@ -50,18 +51,16 @@ test_loader = DataLoader(KineticsDataset(KINETICS_PATH, 'test', N_FRAMES, train_
 #%% 
 # Model
 model = ViViT(N_CLASSES, N_PATCHES, TUBLET_SIZE, EMB_DIM, N_HEADS, N_BLOCKS)
-model = model.half()
+model = model
 
 total_params = sum(p.numel() for p in model.parameters())
 print(f"Number of parameters: {total_params}")
-print(model)
+#print(model)
 
 #%% 
 # Train
 train_loss, eval_loss = train(model, train_loader, val_loader, 
                               epochs=EPOCHS, lr=LR, eval_every=EVAL_EVERY)
-
-write_losses('./losses.json', train_loss, eval_loss)
 
 #%% 
 # Plot losses
@@ -74,10 +73,10 @@ print(f"Final losses: train {train_loss[-1]:.4f}; eval {eval_loss[-1]:.4f}")
 
 #%%
 # Test
-# model = ViViT(N_CLASSES, N_PATCHES, TUBLET_SIZE, EMB_DIM, N_HEADS, N_BLOCKS)
-# model = model.half()
-# state_dict = torch.load('../model.pth', weights_only=True)
-# model.load_state_dict(state_dict)
+#model = ViViT(N_CLASSES, N_PATCHES, TUBLET_SIZE, EMB_DIM, N_HEADS, N_BLOCKS)
+#model = model
+#state_dict = torch.load('/home/felipe/Desktop/model_t_nan_e_nan_epoch_1.pth', weights_only=True)
+#model.load_state_dict(state_dict)
 loss, acc = test(model, test_loader)
 
 print(f"Test Loss {loss}, Acc {acc}")
