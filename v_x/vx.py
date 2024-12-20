@@ -19,7 +19,7 @@ CROP_SIZE = 224
 
 # Transformer Params
 EMB_DIM = 768 
-N_HEADS = 8 # head_size = emb_dim // n_heads
+N_HEADS = 6 # head_size = emb_dim // n_heads
 N_BLOCKS = 8 # num of decoder blocks
 # tublets w/ 16x16 spatial patches and 2 time steps
 #              T,  H,  W
@@ -51,7 +51,6 @@ test_loader = DataLoader(KineticsDataset(KINETICS_PATH, 'test', N_FRAMES, train_
 #%% 
 # Model
 model = ViViT(N_CLASSES, N_PATCHES, TUBLET_SIZE, EMB_DIM, N_HEADS, N_BLOCKS)
-model = model
 
 total_params = sum(p.numel() for p in model.parameters())
 print(f"Number of parameters: {total_params}")
@@ -67,6 +66,9 @@ train_loss, eval_loss = train(model, train_loader, val_loader,
 fig = plt.figure()
 plt.plot(train_loss, label='train')
 plt.plot(eval_loss, label='eval')
+plt.legend(['train', 'eval']) 
+plt.xlabel("every 40k examples")
+plt.ylabel("loss")
 fig.savefig('plot.png', dpi=fig.dpi)
 
 print(f"Final losses: train {train_loss[-1]:.4f}; eval {eval_loss[-1]:.4f}")

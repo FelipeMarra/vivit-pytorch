@@ -35,7 +35,7 @@ def train(model:nn.Module, train_loader:DataLoader, val_loader:DataLoader, epoch
             running_loss += loss_item
 
             if (b_idx+1) % eval_every == 0 or b_idx+1 == len(train_loader):
-                mean_train_loss = running_loss/eval_every
+                mean_train_loss = running_loss/eval_every #TODO: This will fail if last batch is not full
                 train_loss.append(mean_train_loss)
 
                 mean_eval_loss = eval(model, val_loader)

@@ -33,7 +33,7 @@ class ViViT(nn.Module):
         # Apply transformer blocks
         x = self.blocks(x) # (B, P, E)
 
-        # Get cls tokens
+        # Get CLS tokens
         x = x[:, 0] # (B, 1, E)
 
         x = self.norm(x)
