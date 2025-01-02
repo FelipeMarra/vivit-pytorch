@@ -1,7 +1,0 @@
-1st Bigram Model
-    |_ Vocab Embedding table (vocab_size, vocab_size)
-
-    Final loss: 2.4338 (10,000 steps, avg every 100 steps, batch 32, context 32)
-
-    Example Generation: 
-        WIna yevelise 't wowe murfor add hiull y wharod ongozDI rthHicirds wavente, m te kere isd, m INGea e

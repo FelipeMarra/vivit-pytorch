@@ -1,8 +1,0 @@
-2nd Bigram Model
-    |_ Vocab Embedding table (vocab_size, emb_dim)
-    |_ Linear (emb_dim, vocab_size)
-
-    Final loss: 2.2216 (10,000 steps, avg every 100 steps, batch 32, context 32, emb dim 32)
-
-    Example Generation:
-        FICKed out w war ha yevelise 't wowe murfor add hiusu y wharod ongoz-berth icirds wavente, m te ker
