@@ -3,6 +3,7 @@ from kinetics import KineticsDataset
 import torch
 from torch.utils.data import DataLoader
 from torchvision.transforms import v2
+import custom_transforms as cut
 from vivit.vivit import ViViT
 from train_utils import train, test
 
@@ -15,6 +16,7 @@ N_CLASSES = 400
 
 # Video Params
 N_FRAMES = 32
+MIN_RESIZE = 256
 CROP_SIZE = 224
 
 # Transformer Params
@@ -41,7 +43,8 @@ EVAL_EVERY = 10000
 # Transforms will occur as [T, C, H, W], before chuncks are transposed to [C, T, H, W]
 train_transform = v2.Compose([
         #TODO:Normalize?
-        v2.RandomResizedCrop((CROP_SIZE, CROP_SIZE))
+        cut.ResizeSmallest(MIN_RESIZE),
+        v2.RandomCrop((CROP_SIZE, CROP_SIZE))
     ])
 
 train_loader = DataLoader(KineticsDataset(KINETICS_PATH, 'train', N_FRAMES, train_transform), batch_size=BATCH_SIZE, shuffle=True, num_workers=2)

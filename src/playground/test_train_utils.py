@@ -4,7 +4,7 @@ import torch.nn as nn
 from torch.nn import functional as F
 
 #%%
-# Just checking one thing and I dont know why i doesnt really matter how hard you try just keep that in mind
+# Just checking one thing and I dont know why it doesnt really matter how hard you try just keep that in mind
 criterion = nn.CrossEntropyLoss()
 
 logits = torch.zeros((1,10))

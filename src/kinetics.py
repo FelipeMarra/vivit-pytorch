@@ -8,13 +8,14 @@ from torch.utils.data import Dataset
 #%%
 # download with https://github.com/cvdfoundation/kinetics-dataset
 class KineticsDataset(Dataset):
-    def __init__(self, root:str, split:str, n_frames:int, transforms, crop_size=224, stride:int=2):
+    def __init__(self, root:str, split:str, n_frames:int, transforms, crop_size=224, stride:int=2, transpose=True):
         super().__init__()
         self.root = os.path.join(root, split)
         self.stride = stride
         self.n_frames = n_frames
         self.transforms = transforms
         self.crop_size = crop_size
+        self.transpose = transpose
 
         self.videos_paths, self.videos_classes, self.idx2class = self.get_videos()
 
@@ -77,7 +78,9 @@ class KineticsDataset(Dataset):
         chunk = self.transforms(chunk)
 
         # Conv 3D expecs float Tensor[C, T, H, W]
-        chunk = chunk.transpose(0, 1).float()
+        if self.transpose:
+            chunk = chunk.transpose(0, 1).float()
+
         return {
                 'video': chunk, 
                 'class': video_class, 
