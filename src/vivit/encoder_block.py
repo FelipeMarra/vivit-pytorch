@@ -9,7 +9,7 @@ class FeedForward(nn.Module):
         self.dropout = nn.Dropout(0.1)
 
     def forward(self, x):
-        x = nn.ReLU()(self.linear(x))
+        x = nn.GELU()(self.linear(x))
         x = self.proj(x)
         return self.dropout(x)
 
@@ -22,13 +22,15 @@ class EncoderBlock(nn.Module):
 
         self.norm1 = nn.LayerNorm(emb_dim)
         self.multi_head_att = MultiHeadAtt(emb_dim, head_size, n_heads)
+        self.dropout = nn.Dropout(0.1)
         self.norm2 = nn.LayerNorm(emb_dim)
         self.ff = FeedForward(emb_dim)
 
     def forward(self, x):
-        # pre-norm, multihead and add
+        # pre-norm, multihead, add and dropout
         x = self.norm1(x)
         x = x + self.multi_head_att(x)
+        x = self.dropout(x)
 
         # pre-norm, feed forward, & add
         x = self.norm2(x)

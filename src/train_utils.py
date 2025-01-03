@@ -12,6 +12,7 @@ def train(model:nn.Module, train_loader:DataLoader, val_loader:DataLoader, epoch
     # create a PyTorch optimizer
     optimizer = torch.optim.AdamW(model.parameters(), lr=lr)
     criterion = nn.CrossEntropyLoss().cuda()
+    scaler = torch.cuda.amp.GradScaler()
 
     train_loss = []
     eval_loss = []
@@ -23,14 +24,20 @@ def train(model:nn.Module, train_loader:DataLoader, val_loader:DataLoader, epoch
             xb = batch['video'].cuda()
             yb = batch['class'].cuda()
 
-            # evaluate the loss
-            y_hat = model(xb)
-            loss = criterion(y_hat, yb)
+            # Mixed precision forward pass
+            with torch.autocast(device_type='cuda', dtype=torch.float16):
+                # evaluate the loss
+                logits = model(xb)
+                loss = criterion(logits, yb)
 
+            # Scaled backprop
+            scaler.scale(loss).backward()
+            # Use scaler.unscale_(opt) if need to change the grads
+            scaler.step(optimizer)
+            scaler.update()
             optimizer.zero_grad(set_to_none=True)
-            loss.backward()
-            optimizer.step()
 
+            # Stats and eval
             loss_item = loss.item()
             running_loss += loss_item
 
@@ -47,7 +54,13 @@ def train(model:nn.Module, train_loader:DataLoader, val_loader:DataLoader, epoch
 
         #%%
         # Save model
-        torch.save(model.state_dict(), f"./model_t_{mean_train_loss:.4f}_e_{mean_eval_loss:.4f}.pth")
+        checkpoint = {
+            "model": model.state_dict(),
+            "optimizer": criterion.state_dict(),
+            "scaler": scaler.state_dict()
+        }
+
+        torch.save(checkpoint, f"./model_t_{mean_train_loss:.4f}_e_{mean_eval_loss:.4f}.pth")
         write_losses(f'./losses_e_{e_idx}.json', train_loss, eval_loss)
 
     return train_loss, eval_loss
@@ -55,7 +68,6 @@ def train(model:nn.Module, train_loader:DataLoader, val_loader:DataLoader, epoch
 @torch.no_grad()
 def eval(model:nn.Module, loader:DataLoader):
     model = model.eval()
-    model = model.cuda()
     criterion = nn.CrossEntropyLoss().cuda()
 
     losses = torch.zeros(len(loader))
@@ -63,8 +75,11 @@ def eval(model:nn.Module, loader:DataLoader):
         xb = batch['video'].cuda()
         yb = batch['class'].cuda()
 
-        logits = model(xb)
-        loss = criterion(logits, yb)
+        # Mixed precision forward pass
+        with torch.autocast(device_type='cuda', dtype=torch.float16):
+            logits = model(xb)
+            loss = criterion(logits, yb)
+
         losses[b_idx] = loss.item()
 
     model = model.train()
@@ -72,10 +87,15 @@ def eval(model:nn.Module, loader:DataLoader):
     return losses.mean().item()
 
 @torch.no_grad()
-def test(model:nn.Module, loader:DataLoader):
+def test(model:nn.Module, loader:DataLoader, checkpoint=None):
+    criterion = nn.CrossEntropyLoss().cuda()
+
+    if checkpoint:
+        model.load_state_dict(checkpoint["model"])
+        criterion.load_state_dict(checkpoint["optimizer"])
+
     model = model.eval()
     model = model.cuda()
-    criterion = nn.CrossEntropyLoss().cuda()
 
     losses = torch.zeros(len(loader))
     acc_sum = 0
@@ -83,15 +103,18 @@ def test(model:nn.Module, loader:DataLoader):
         xb = batch['video'].cuda()
         yb = batch['class'].cuda()
 
-        logits = model(xb)
+        # Mixed precision forward pass
+        with torch.autocast(device_type='cuda', dtype=torch.float16):
+            logits = model(xb)
 
-        # acc
-        probs = F.softmax(logits, dim=1)
-        predict = torch.argmax(probs, dim=1)
-        acc_sum += torch.sum(predict == yb).detach().item()
+            # acc
+            probs = F.softmax(logits, dim=1)
+            predict = torch.argmax(probs, dim=1)
+            acc_sum += torch.sum(predict == yb).detach().item()
 
-        # loss
-        loss = criterion(logits, yb)
+            # loss
+            loss = criterion(logits, yb)
+
         losses[b_idx] = loss.item()
 
     model = model.train()

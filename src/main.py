@@ -77,8 +77,16 @@ print(f"Final losses: train {train_loss[-1]:.4f}; eval {eval_loss[-1]:.4f}")
 # Test
 #model = ViViT(N_CLASSES, N_PATCHES, TUBLET_SIZE, EMB_DIM, N_HEADS, N_BLOCKS)
 #model = model
-#state_dict = torch.load('/home/felipe/Desktop/model_t_nan_e_nan_epoch_1.pth', weights_only=True)
-#model.load_state_dict(state_dict)
+# dev = torch.cuda.current_device()
+# checkpoint = torch.load("filename",
+#                         map_location = lambda storage, loc: storage.cuda(dev))
+
+# If resuming train needs to load scaler
+# https://pytorch.org/tutorials/recipes/recipes/amp_recipe.html#saving-resuming
+# model.load_state_dict(checkpoint["model"])
+# criterion.load_state_dict(checkpoint["optimizer"])
+# scaler.load_state_dict(checkpoint["scaler"])
+
 loss, acc = test(model, test_loader)
 
 print(f"Test Loss {loss}, Acc {acc}")

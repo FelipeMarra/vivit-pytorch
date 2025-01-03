@@ -14,7 +14,7 @@ class ViViT(nn.Module):
         self.norm = nn.LayerNorm(emb_dim)
         self.linear = nn.Linear(emb_dim, n_classes)
 
-    def forward(self, x):
+    def forward(self, x:torch.Tensor):
     #   B, C, T, H, W
         B, _, _, _, _ = x.shape
 
@@ -27,7 +27,7 @@ class ViViT(nn.Module):
         x = tkn_emb + pos_emb # (B, S, E); E = embedding size
 
         # Append cls token
-        cls = torch.zeros(B, 1, self.emb_dim, device='cuda', dtype=torch.float32)
+        cls = torch.zeros(B, 1, self.emb_dim, device=x.device, dtype=x.dtype)
         x = torch.cat((cls, x), dim=1)
 
         # Apply transformer encoder blocks
