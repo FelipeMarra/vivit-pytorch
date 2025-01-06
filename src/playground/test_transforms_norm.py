@@ -28,6 +28,9 @@ BATCH_SIZE = 1
 train_transform = v2.Compose([
         cut.ResizeSmallest(MIN_RESIZE),
         v2.RandomCrop((CROP_SIZE, CROP_SIZE)),
+        v2.ToDtype(torch.float32, scale=True),
+
+        cut.ZeroCenterNorm()
     ])
 
 # Transpose messes with the channels order, so for testing purposes it will be deactivated
@@ -42,22 +45,13 @@ path = batch['path']
 print(f"Original video path {path}")
 print(f"Transformed video {video.dtype} {video.shape}")
 
-video = video.squeeze() # Remove batch dim 
+#%%
+# Check some frames
+frames_idx = [0, 15, 31]
 
-# Video config
-frame_rate = 30
-height = CROP_SIZE
-width = CROP_SIZE
-
-# Configure stream
-s = StreamWriter(dst="./video.mp4")
-s.add_video_stream(frame_rate=frame_rate, height=height, width=width, format="rgb24")
-
-# Generate video chunk (3 seconds)
-time = int(frame_rate * 3)
-chunk = video[:time]
-
-# Write data
-with s.open():
-    s.write_video_chunk(0, chunk)
-# %%
+for frame_idx in frames_idx:
+    frame:torch.Tensor = video[0, frames_idx, :, :]
+    print(f"Frame {frame_idx+1}: shape {frame.shape}")
+    print(f"Stats: mean {frame.squeeze().mean()} std {frame.squeeze().std()}")
+    print(frame)
+    print()

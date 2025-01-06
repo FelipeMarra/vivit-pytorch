@@ -34,7 +34,7 @@ N_PATCHES = int(N_PATCHES)
 
 # General Params
 BATCH_SIZE = 4
-EPOCHS = 5
+EPOCHS = 30
 LR = 1e-3
 EVAL_EVERY = 10000
 
@@ -42,9 +42,10 @@ EVAL_EVERY = 10000
 # Loaders
 # Transforms will occur as [T, C, H, W], before chuncks are transposed to [C, T, H, W]
 train_transform = v2.Compose([
-        #TODO:Normalize?
         cut.ResizeSmallest(MIN_RESIZE),
-        v2.RandomCrop((CROP_SIZE, CROP_SIZE))
+        v2.RandomCrop((CROP_SIZE, CROP_SIZE)),
+        v2.ToDtype(torch.float32, scale=True),
+        cut.ZeroCenterNorm()
     ])
 
 train_loader = DataLoader(KineticsDataset(KINETICS_PATH, 'train', N_FRAMES, train_transform), batch_size=BATCH_SIZE, shuffle=True, num_workers=2)
