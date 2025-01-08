@@ -22,8 +22,7 @@ TUBLET_SIZE = (2, 16, 16)
 #%%
 # Transforms will occur as [T, C, H, W], before chuncks are transposed to [C, T, H, W]
 train_transform = v2.Compose([
-        #TODO: Fazer na mao mesmo v2.Normalize((1,), (0,), inplace=True),
-        v2.RandomResizedCrop(size=(224, 224), antialias=True)
+        v2.RandomResizedCrop(size=(224, 224))
     ])
 
 train_loader = DataLoader(KineticsDataset(KINETICS_PATH, 'train', N_FRAMES, train_transform), batch_size=BATCH_SIZE, shuffle=True, num_workers=2)
