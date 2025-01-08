@@ -10,8 +10,8 @@ from train_utils import train, test
 import matplotlib.pyplot as plt
 
 # Dataset params
-#KINETICS_PATH = '/media/felipe/32740855-6a5b-4166-b047-c8177bb37be1/kinetics-dataset/k400/arranged'
-KINETICS_PATH = '/root/kinetics-dataset/k400/videos'
+KINETICS_PATH = '/media/felipe/32740855-6a5b-4166-b047-c8177bb37be1/kinetics-dataset/k400/arranged'
+#KINETICS_PATH = '/root/kinetics-dataset/k400/videos'
 N_CLASSES = 400
 
 # Video Params
@@ -21,8 +21,8 @@ CROP_SIZE = 224
 
 # Transformer Params
 EMB_DIM = 768 
-N_HEADS = 6 # head_size = emb_dim // n_heads
-N_BLOCKS = 8 # num of decoder blocks
+N_HEADS = 12 # head_size = emb_dim // n_heads
+N_BLOCKS = 1 # num of decoder blocks
 # tublets w/ 16x16 spatial patches and 2 time steps
 #              T,  H,  W
 TUBLET_SIZE = (2, 16, 16)
@@ -33,7 +33,7 @@ assert N_PATCHES.is_integer()
 N_PATCHES = int(N_PATCHES)
 
 # General Params
-BATCH_SIZE = 4
+BATCH_SIZE = 1
 EPOCHS = 30
 LR = 1e-3
 EVAL_EVERY = 10000
