@@ -35,9 +35,15 @@ train_transform = v2.Compose([
         cut.ZeroCenterNorm()
     ])
 
+test_transform = v2.Compose([
+        v2.Resize((CROP_SIZE, CROP_SIZE)),
+        v2.ToDtype(torch.float32, scale=True),
+        cut.ZeroCenterNorm()
+    ])
+
 train_loader = DataLoader(KineticsDataset(KINETICS_PATH, 'train', N_FRAMES, train_transform), batch_size=BATCH_SIZE, shuffle=True, num_workers=2)
-val_loader = DataLoader(KineticsDataset(KINETICS_PATH, 'val', N_FRAMES, train_transform), batch_size=BATCH_SIZE, shuffle=True, num_workers=2)
-test_loader = DataLoader(KineticsDataset(KINETICS_PATH, 'test', N_FRAMES, train_transform), batch_size=BATCH_SIZE, shuffle=True, num_workers=2)
+val_loader = DataLoader(KineticsDataset(KINETICS_PATH, 'val', N_FRAMES, test_transform), batch_size=BATCH_SIZE, shuffle=True, num_workers=2)
+test_loader = DataLoader(KineticsDataset(KINETICS_PATH, 'test', N_FRAMES, test_transform), batch_size=BATCH_SIZE, shuffle=True, num_workers=2)
 
 #%% 
 # Model
