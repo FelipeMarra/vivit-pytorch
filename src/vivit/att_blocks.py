@@ -6,7 +6,6 @@ class MultiHeadAtt(nn.Module):
     def __init__(self, emb_dim, n_heads):
         super().__init__()
 
-        # assert emb_dim % n_heads == 0 torch implementation will verify this already
         self.head_size = emb_dim // n_heads
         self.n_heads = n_heads
 
