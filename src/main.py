@@ -1,13 +1,15 @@
 #%% 
 # Imports
-from kinetics import KineticsDataset
+import random
 import torch
+import numpy as np
+from consts import *
+from kinetics import KineticsDataset
 from torch.utils.data import DataLoader
 from torchvision.transforms import v2
 import custom_transforms as cut
 from vivit.vivit import ViViT
 from train_utils import train, test
-from consts import *
 import matplotlib.pyplot as plt
 
 #%% 
@@ -15,6 +17,13 @@ import matplotlib.pyplot as plt
 assert EMB_DIM % N_HEADS == 0, "EMB_DIM should be divisible by N_HEAD"
 assert N_PATCHES.is_integer(), "N_PATCHES should be an integer"
 N_PATCHES = int(N_PATCHES)
+
+#%%
+# Set seed
+random.seed(SEED)
+np.random.seed(SEED)
+torch.manual_seed(SEED)
+torch.cuda.manual_seed_all(SEED)
 
 #%% 
 # Loaders

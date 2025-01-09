@@ -10,7 +10,7 @@ def train(model:nn.Module, train_loader:DataLoader, val_loader:DataLoader, epoch
     model = model.cuda()
 
     # create a PyTorch optimizer
-    optimizer = torch.optim.AdamW(model.parameters(), lr=lr)
+    optimizer = torch.optim.AdamW(model.parameters(), lr=lr, weight_decay=1e-3)
     criterion = nn.CrossEntropyLoss().cuda()
     scaler = torch.cuda.amp.GradScaler()
 
