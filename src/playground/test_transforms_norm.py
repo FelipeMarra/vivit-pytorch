@@ -37,18 +37,25 @@ train_loader = DataLoader(KineticsDataset(KINETICS_PATH, 'train', N_FRAMES, trai
 #%%
 batch = next(iter(train_loader))
 
-video = batch['video']
-
+video1 = batch['video']
 path = batch['path']
 print(f"Original video path {path}")
-print(f"Transformed video {video.dtype} {video.shape}")
+print(f"Transformed video {video1.dtype} {video1.shape}")
+
+video2 = train_transform(torch.zeros((1, 32, 3, 600, 600), dtype=torch.uint8))
+video3 = train_transform(torch.ones((1, 32, 3, 500, 500), dtype=torch.uint8) * 255)
+video4 = train_transform(torch.ones((1, 32, 3, 1280, 720), dtype=torch.uint8) * 125)
+
+videos = [video1, video2, video3, video4]
 
 #%%
 # Check some frames
 frames_idx = [0, 15, 31]
 
-for frame_idx in frames_idx:
-    frame:torch.Tensor = video[0, frames_idx, :, :]
-    print(f"Frame {frame_idx+1}: shape {frame.shape}")
-    print(frame)
-    print()
+for idx, video in enumerate(videos):
+    print(f"VIDEO {idx}")
+    for frame_idx in frames_idx:
+        frame:torch.Tensor = video[0, frames_idx, :, :]
+        print(f"Frame {frame_idx+1}: shape {frame.shape}, type {frame.dtype}")
+        print(frame)
+        print()
