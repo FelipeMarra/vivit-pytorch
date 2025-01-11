@@ -5,7 +5,6 @@ sys.path.append(os.path.abspath('../'))
 
 from kinetics import KineticsDataset
 import torch
-from torchaudio.io import StreamWriter
 from torch.utils.data import DataLoader
 from torchvision.transforms import v2
 import custom_transforms as cut
@@ -29,8 +28,7 @@ train_transform = v2.Compose([
         cut.ResizeSmallest(MIN_RESIZE),
         v2.RandomCrop((CROP_SIZE, CROP_SIZE)),
         v2.ToDtype(torch.float32, scale=True),
-
-        cut.ZeroCenterNorm()
+        v2.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
     ])
 
 # Transpose messes with the channels order, so for testing purposes it will be deactivated
@@ -52,6 +50,5 @@ frames_idx = [0, 15, 31]
 for frame_idx in frames_idx:
     frame:torch.Tensor = video[0, frames_idx, :, :]
     print(f"Frame {frame_idx+1}: shape {frame.shape}")
-    print(f"Stats: mean {frame.squeeze().mean()} std {frame.squeeze().std()}")
     print(frame)
     print()

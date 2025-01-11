@@ -34,13 +34,13 @@ train_transform = v2.Compose([
         cut.ResizeSmallest(MIN_RESIZE),
         v2.RandomCrop((CROP_SIZE, CROP_SIZE)),
         v2.ToDtype(torch.float32, scale=True),
-        cut.ZeroCenterNorm()
+        v2.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
     ])
 
 test_transform = v2.Compose([
         v2.Resize((CROP_SIZE, CROP_SIZE)),
         v2.ToDtype(torch.float32, scale=True),
-        cut.ZeroCenterNorm()
+        v2.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
     ])
 
 n_workers = mp.cpu_count() # n_workers == num of threads
