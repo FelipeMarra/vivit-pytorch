@@ -1,5 +1,6 @@
 #%% 
 # Imports
+from datetime import datetime
 import random
 import multiprocessing as mp
 import torch
@@ -11,7 +12,7 @@ from torchvision.transforms import v2
 import custom_transforms as cut
 from vivit.vivit import ViViT
 from train_utils import train, test
-import matplotlib.pyplot as plt
+from torch.utils.tensorboard import SummaryWriter
 
 #%% 
 # Parameters asserts
@@ -47,30 +48,23 @@ train_loader = DataLoader(KineticsDataset(KINETICS_PATH, 'train', N_FRAMES, trai
 val_loader = DataLoader(KineticsDataset(KINETICS_PATH, 'val', N_FRAMES, test_transform), batch_size=BATCH_SIZE, shuffle=True, num_workers=n_workers)
 test_loader = DataLoader(KineticsDataset(KINETICS_PATH, 'test', N_FRAMES, test_transform), batch_size=BATCH_SIZE, shuffle=True, num_workers=n_workers)
 
+#%%
+# Tensorboard writer
+now = datetime.now().strftime('%m/%d/%Y_%H:%M:%S')
+writer = SummaryWriter(f'vivit_{now}')
+
 #%% 
 # Model
 model = ViViT(N_CLASSES, N_PATCHES, TUBLET_SIZE, EMB_DIM, N_HEADS, N_BLOCKS)
 
 total_params = sum(p.numel() for p in model.parameters())
 print(f"Number of parameters: {total_params}")
-#print(model)
+
+# TODO not working: writer.add_graph(model.cuda(), next(iter(train_loader))['video'].cuda())
 
 #%% 
 # Train
-train_loss, eval_loss = train(model, train_loader, val_loader, 
-                              epochs=EPOCHS, lr=LR, eval_every=EVAL_EVERY)
-
-#%% 
-# Plot losses
-fig = plt.figure()
-plt.plot(train_loss, label='train')
-plt.plot(eval_loss, label='eval')
-plt.legend(['train', 'eval']) 
-plt.xlabel("every 40k examples")
-plt.ylabel("loss")
-fig.savefig('plot.png', dpi=fig.dpi)
-
-print(f"Final losses: train {train_loss[-1]:.4f}; eval {eval_loss[-1]:.4f}")
+train(model, writer, train_loader, val_loader, epochs=EPOCHS, lr=LR, eval_every=EVAL_EVERY)
 
 #%%
 # Test
@@ -86,6 +80,6 @@ print(f"Final losses: train {train_loss[-1]:.4f}; eval {eval_loss[-1]:.4f}")
 # criterion.load_state_dict(checkpoint["optimizer"])
 # scaler.load_state_dict(checkpoint["scaler"])
 
-loss, acc = test(model, test_loader)
-
+loss, acc = test(model, test_loader, writer)
+writer.close()
 print(f"Test Loss {loss}, Acc {acc}")
