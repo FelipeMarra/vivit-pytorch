@@ -7,7 +7,6 @@ from kinetics import KineticsDataset
 import torch
 from torch.utils.data import DataLoader
 from torchvision.transforms import v2
-import custom_transforms as cut
 
 # Dataset params
 KINETICS_PATH = '/media/felipe/32740855-6a5b-4166-b047-c8177bb37be1/kinetics-dataset/k400/arranged'
@@ -25,8 +24,7 @@ BATCH_SIZE = 1
 # Loaders
 # Transforms will occur as [T, C, H, W], before chuncks are transposed to [C, T, H, W]
 train_transform = v2.Compose([
-        cut.ResizeSmallest(MIN_RESIZE),
-        v2.RandomCrop((CROP_SIZE, CROP_SIZE)),
+        v2.RandomResizedCrop((CROP_SIZE, CROP_SIZE), (0.05, 1)),
         v2.ToDtype(torch.float32, scale=True),
         v2.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
     ])

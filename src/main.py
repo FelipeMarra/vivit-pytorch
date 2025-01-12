@@ -9,7 +9,6 @@ from consts import *
 from kinetics import KineticsDataset
 from torch.utils.data import DataLoader
 from torchvision.transforms import v2
-import custom_transforms as cut
 from vivit.vivit import ViViT
 from train_utils import train, test
 from torch.utils.tensorboard import SummaryWriter
@@ -30,9 +29,17 @@ torch.cuda.manual_seed_all(SEED)
 #%% 
 # Loaders
 # Transforms will occur as [T, C, H, W], before chuncks are transposed to [C, T, H, W]
+# RandomResizedCrop was used instead of scale jitter + random crop. DMVR scale jitter implementation is different from the torch one 
+# RandomResizedCrop value from  https://github.com/KSonPham/ViVit-a-Pytorch-implementation/blob/14aaab46a6301a1a786a6372f686d75b6ae7fac5/utils/data_utils.py#L54
+# RandomHorizontalFlip and RandomApply (for color jitter) values are from table 7 in the ViViT paper
+# ColorJitter values are same as DMVR default values: https://github.com/google-deepmind/dmvr/blob/77ccedaa084d29239eaeafddb0b2e83843b613a1/dmvr/processors.py#L602
 train_transform = v2.Compose([
-        cut.ResizeSmallest(MIN_RESIZE),
-        v2.RandomCrop((CROP_SIZE, CROP_SIZE)),
+        v2.RandomResizedCrop((CROP_SIZE, CROP_SIZE), (0.05, 1)),
+        v2.RandomHorizontalFlip(0.5),
+        v2.RandomApply([
+            v2.ColorJitter(brightness=0.125, contrast=(0.6, 1.4), saturation=(0.6, 1.4), hue=0.2)
+        ], 
+        0.8),
         v2.ToDtype(torch.float32, scale=True),
         v2.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
     ])
