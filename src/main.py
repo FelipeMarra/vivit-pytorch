@@ -6,7 +6,7 @@ import multiprocessing as mp
 import torch
 import numpy as np
 from consts import *
-from kinetics import KineticsDataset
+from datasets.kinetics import KineticsDataset
 from torch.utils.data import DataLoader
 from torchvision.transforms import v2
 from vivit.vivit import ViViT

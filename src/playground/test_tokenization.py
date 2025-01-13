@@ -4,7 +4,7 @@ import os
 
 sys.path.append(os.path.abspath('../'))
 
-from kinetics import KineticsDataset
+from datasets.kinetics import KineticsDataset
 from torch.utils.data import DataLoader
 from torch import nn
 import torch

@@ -3,7 +3,7 @@ import sys
 import os
 sys.path.append(os.path.abspath('../'))
 
-from kinetics import KineticsDataset
+from datasets.kinetics import KineticsDataset
 from torchaudio.io import StreamWriter
 from torch.utils.data import DataLoader
 from torchvision.transforms import v2
