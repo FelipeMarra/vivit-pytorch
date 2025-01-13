@@ -11,7 +11,7 @@ CROP_SIZE = 224
 # Transformer Params
 EMB_DIM = 768 
 N_HEADS = 12 # head_size = emb_dim // n_heads
-N_BLOCKS = 1 # num of decoder blocks
+N_BLOCKS = 12 # num of decoder blocks
 # tublets w/ 16x16 spatial patches and 2 time steps
 #              T,  H,  W
 TUBLET_SIZE = (2, 16, 16)
@@ -20,7 +20,7 @@ N_PATCHES = (N_FRAMES/TUBLET_T) * (CROP_SIZE/TUBLET_H) * (CROP_SIZE/TUBLET_W)
 
 # General Params
 SEED = 1234
-BATCH_SIZE = 1
+BATCH_SIZE = 4
 EPOCHS = 30
 LR = 1e-3
 EVAL_EVERY = 10000

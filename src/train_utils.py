@@ -4,7 +4,7 @@ from tqdm import tqdm
 from torch.nn import functional as F
 from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
-from itertools import islice
+
 
 def train(model:nn.Module, writer:SummaryWriter, train_loader:DataLoader, val_loader:DataLoader, epochs:int, lr=1e-3, eval_every=100):
     model = model.train()
@@ -21,7 +21,7 @@ def train(model:nn.Module, writer:SummaryWriter, train_loader:DataLoader, val_lo
     mean_eval_loss = 0
 
     for _ in range(epochs):
-        for b_idx, batch in tqdm(islice(enumerate(train_loader),200), total=len(train_loader), desc="Train"):
+        for b_idx, batch in tqdm(enumerate(train_loader), total=len(train_loader), desc="Train"):
             xb = batch['video'].cuda()
             yb = batch['class'].cuda()
 
@@ -71,7 +71,7 @@ def eval(model:nn.Module, loader:DataLoader, writer:SummaryWriter, global_step:i
     criterion = nn.CrossEntropyLoss().cuda()
 
     losses = torch.zeros(len(loader))
-    for b_idx, batch in tqdm(islice(enumerate(loader),100), total=len(loader), desc="Eval"):
+    for b_idx, batch in tqdm(enumerate(loader), total=len(loader), desc="Eval"):
         xb = batch['video'].cuda()
         yb = batch['class'].cuda()
 
@@ -103,7 +103,7 @@ def test(model:nn.Module, loader:DataLoader, writer:SummaryWriter, checkpoint=No
 
     losses = torch.zeros(len(loader))
     acc_sum = 0
-    for b_idx, batch in tqdm(islice(enumerate(loader),100), total=len(loader), desc="Test"):
+    for b_idx, batch in tqdm(enumerate(loader), total=len(loader), desc="Test"):
         xb = batch['video'].cuda()
         yb = batch['class'].cuda()
 
