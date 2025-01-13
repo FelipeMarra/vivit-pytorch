@@ -5,7 +5,6 @@ from torch.nn import functional as F
 from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
 
-
 def train(model:nn.Module, writer:SummaryWriter, train_loader:DataLoader, val_loader:DataLoader, epochs:int, lr=1e-3, eval_every=100):
     model = model.train()
     model = model.cuda()

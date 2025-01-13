@@ -3,14 +3,17 @@ import sys
 import os
 sys.path.append(os.path.abspath('../'))
 
-from datasets.kinetics import KineticsDataset
+from datasets.datasets import get_datasets, DatasetsEnum
+import torch
 from torchaudio.io import StreamWriter
 from torch.utils.data import DataLoader
 from torchvision.transforms import v2
 
 # Dataset params
-KINETICS_PATH = '/media/felipe/32740855-6a5b-4166-b047-c8177bb37be1/kinetics-dataset/k400/arranged'
-#KINETICS_PATH = '/root/kinetics-dataset/k400/videos'
+DATASET = DatasetsEnum.GAMES
+DATASET_PATH = '/home/felipe/Desktop/database/5. Database/nintendo-snes-spc'
+#DATASET_PATH = '/media/felipe/32740855-6a5b-4166-b047-c8177bb37be1/kinetics-dataset/k400/arranged'
+#DATASET_PATH = '/root/kinetics-dataset/k400/videos'
 
 # Video Params
 N_FRAMES = 32
@@ -35,16 +38,20 @@ train_transform = v2.Compose([
         1.0),
     ])
 
+train_dataset, eval_dataset, test_dataset = get_datasets(DATASET, DATASET_PATH, N_FRAMES, train_transform, None, transpose=False)
+
 # Transpose messes with the channels order, so for testing purposes it will be deactivated
-train_loader = DataLoader(KineticsDataset(KINETICS_PATH, 'train', N_FRAMES, train_transform, transpose=False), batch_size=BATCH_SIZE, shuffle=True, num_workers=1)
+train_loader = DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True, num_workers=1)
 
 #%%
 batch = next(iter(train_loader))
 
 video = batch['video']
+video_class = batch['class']
 
 path = batch['path']
-print(f"Original video path {path}")
+print(video)
+print(f"Original video path {path} \n video class {video_class}")
 print(f"Transformed video {video.dtype} {video.shape}")
 
 video = video.squeeze() # Remove batch dim 

@@ -6,7 +6,7 @@ import multiprocessing as mp
 import torch
 import numpy as np
 from consts import *
-from datasets.kinetics import KineticsDataset
+from datasets.datasets import get_datasets
 from torch.utils.data import DataLoader
 from torchvision.transforms import v2
 from vivit.vivit import ViViT
@@ -33,7 +33,7 @@ torch.cuda.manual_seed_all(SEED)
 # RandomResizedCrop value from  https://github.com/KSonPham/ViVit-a-Pytorch-implementation/blob/14aaab46a6301a1a786a6372f686d75b6ae7fac5/utils/data_utils.py#L54
 # RandomHorizontalFlip and RandomApply (for color jitter) values are from table 7 in the ViViT paper
 # ColorJitter values are same as DMVR default values: https://github.com/google-deepmind/dmvr/blob/77ccedaa084d29239eaeafddb0b2e83843b613a1/dmvr/processors.py#L602
-train_transform = v2.Compose([
+train_transforms = v2.Compose([
         v2.RandomResizedCrop((CROP_SIZE, CROP_SIZE), (0.05, 1)),
         v2.RandomHorizontalFlip(0.5),
         v2.RandomApply([
@@ -44,16 +44,18 @@ train_transform = v2.Compose([
         v2.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
     ])
 
-test_transform = v2.Compose([
+test_transforms = v2.Compose([
         v2.Resize((CROP_SIZE, CROP_SIZE)),
         v2.ToDtype(torch.float32, scale=True),
         v2.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
     ])
 
+train_dataset, eval_dataset, test_dataset = get_datasets(DATASET, DATASET_PATH, N_FRAMES, train_transforms, test_transforms)
+
 n_workers = mp.cpu_count() # n_workers == num of threads
-train_loader = DataLoader(KineticsDataset(KINETICS_PATH, 'train', N_FRAMES, train_transform), batch_size=BATCH_SIZE, shuffle=True, num_workers=n_workers)
-val_loader = DataLoader(KineticsDataset(KINETICS_PATH, 'val', N_FRAMES, test_transform), batch_size=BATCH_SIZE, shuffle=True, num_workers=n_workers)
-test_loader = DataLoader(KineticsDataset(KINETICS_PATH, 'test', N_FRAMES, test_transform), batch_size=BATCH_SIZE, shuffle=True, num_workers=n_workers)
+train_loader = DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True, num_workers=n_workers)
+val_loader = DataLoader(eval_dataset, batch_size=BATCH_SIZE, shuffle=False, num_workers=n_workers)
+test_loader = DataLoader(test_dataset, batch_size=BATCH_SIZE, shuffle=False, num_workers=n_workers)
 
 #%%
 # Tensorboard writer

@@ -1,6 +1,10 @@
+from datasets.datasets import DatasetsEnum
+
 # Dataset params
-KINETICS_PATH = '/media/felipe/32740855-6a5b-4166-b047-c8177bb37be1/kinetics-dataset/k400/arranged'
-#KINETICS_PATH = '/root/kinetics-dataset/k400/videos'
+DATASET = DatasetsEnum.KINETICS400
+#DATASET_PATH = '/home/felipe/Desktop/database/5. Database/nintendo-snes-spc'
+DATASET_PATH = '/media/felipe/32740855-6a5b-4166-b047-c8177bb37be1/kinetics-dataset/k400/arranged'
+#DATASET_PATH = '/root/kinetics-dataset/k400/videos'
 N_CLASSES = 400
 
 # Video Params
@@ -22,5 +26,5 @@ N_PATCHES = (N_FRAMES/TUBLET_T) * (CROP_SIZE/TUBLET_H) * (CROP_SIZE/TUBLET_W)
 SEED = 1234
 BATCH_SIZE = 4
 EPOCHS = 30
-LR = 1e-3
+LR = 1e-4
 EVAL_EVERY = 10000
