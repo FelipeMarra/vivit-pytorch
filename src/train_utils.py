@@ -6,7 +6,7 @@ from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
 from torch.nn.parallel import DistributedDataParallel as DDP
 
-def train(model:nn.Module, writer:SummaryWriter, train_loader:DataLoader, val_loader:DataLoader, epochs:int, gpu_id:int, lr=1e-3, eval_every=100):
+def train(model:nn.Module, train_loader:DataLoader, val_loader:DataLoader, epochs:int, gpu_id:int, lr=1e-3, eval_every=100, writer:SummaryWriter|None=None):
     model = model.train()
     model = model.to(gpu_id)
     model = DDP(model, device_ids=[gpu_id])
@@ -44,7 +44,7 @@ def train(model:nn.Module, writer:SummaryWriter, train_loader:DataLoader, val_lo
 
             # Stats and eval
             running_loss += loss
-            if gpu_id == 0:
+            if writer != None:
                 writer.add_scalar('Train/Loss', loss, global_step)
                 writer.add_scalar('Train/Lr', optimizer.param_groups[0]['lr'], global_step) # https://discuss.pytorch.org/t/get-current-lr-of-optimizer-with-adaptive-lr/24851/5
 
@@ -71,7 +71,7 @@ def train(model:nn.Module, writer:SummaryWriter, train_loader:DataLoader, val_lo
             torch.save(checkpoint, f"./model_t_{mean_train_loss:.4f}_e_{mean_eval_loss:.4f}.pth")
 
 @torch.no_grad()
-def eval(model:nn.Module, loader:DataLoader, writer:SummaryWriter, global_step:int, gpu_id:int):
+def eval(model:nn.Module, loader:DataLoader, writer:SummaryWriter|None, global_step:int, gpu_id:int):
     model = model.eval()
     criterion = nn.CrossEntropyLoss()
 
@@ -92,13 +92,13 @@ def eval(model:nn.Module, loader:DataLoader, writer:SummaryWriter, global_step:i
 
     loss = losses.mean().item()
 
-    if gpu_id == 0:
+    if writer != None:
         writer.add_scalar('Eval/Loss', loss, global_step)
 
     return loss
 
 @torch.no_grad()
-def test(model:nn.Module, loader:DataLoader, writer:SummaryWriter, gpu_id:int, checkpoint=None):
+def test(model:nn.Module, loader:DataLoader, gpu_id:int, checkpoint=None, writer:SummaryWriter|None=None):
     criterion = nn.CrossEntropyLoss()
 
     if checkpoint:
@@ -132,7 +132,7 @@ def test(model:nn.Module, loader:DataLoader, writer:SummaryWriter, gpu_id:int, c
     acc = acc_sum/n_examples
     loss = losses.mean()
 
-    if gpu_id == 0:
+    if writer != None:
         writer.add_scalar('Test/Acc', acc)
         writer.add_scalar('Test/Loss', loss)
 

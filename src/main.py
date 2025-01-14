@@ -71,9 +71,11 @@ def main(rank:int, world_size:int):
     test_loader = DataLoader(test_dataset, batch_size=c.BATCH_SIZE, shuffle=False, num_workers=n_workers, sampler=DistributedSampler(test_dataset, shuffle=False))
 
     #%%
-    # Tensorboard writer
-    now = datetime.now().strftime('%m/%d/%Y_%H:%M:%S')
-    writer = SummaryWriter(f'vivit_{now}')
+    # Tensorboard writer for GPU 0
+    writer = None
+    if rank == 0:
+        now = datetime.now().strftime('%m/%d/%Y_%H:%M:%S')
+        writer = SummaryWriter(f'vivit_{now}')
 
     #%% 
     # Model
@@ -86,7 +88,7 @@ def main(rank:int, world_size:int):
 
     #%% 
     # Train
-    train(model, writer, train_loader, val_loader, c.EPOCHS, rank, lr=c.LR, eval_every=c.EVAL_EVERY)
+    train(model, train_loader, val_loader, c.EPOCHS, rank, lr=c.LR, eval_every=c.EVAL_EVERY, writer=writer)
 
     #%%
     # Test
@@ -102,10 +104,11 @@ def main(rank:int, world_size:int):
     # criterion.load_state_dict(checkpoint["optimizer"])
     # scaler.load_state_dict(checkpoint["scaler"])
 
-    loss, acc = test(model, test_loader, writer, rank)
-    writer.close()
+    loss, acc = test(model, test_loader, rank, writer=writer)
     print(f"Test Loss {loss}, Acc {acc}")
 
+    if writer != None:
+        writer.close()
     destroy_process_group()
 
 if __name__ == "__main__":
