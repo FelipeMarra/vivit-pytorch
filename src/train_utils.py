@@ -50,9 +50,9 @@ def train(model:ViViT, train_loader:DataLoader, val_loader:DataLoader, epochs:in
                 writer.add_scalar('Train/Loss', loss, global_step)
                 writer.add_scalar('Train/Lr', optimizer.param_groups[0]['lr'], global_step) # https://discuss.pytorch.org/t/get-current-lr-of-optimizer-with-adaptive-lr/24851/5
 
-            steps_till_eval = (b_idx+1) % eval_every
-            if steps_till_eval == 0 or b_idx+1 == len(train_loader):
-                mean_train_loss = running_loss/(eval_every - steps_till_eval)
+            mod_eval = (b_idx+1) % eval_every
+            if mod_eval == 0 or b_idx+1 == len(train_loader):
+                mean_train_loss = running_loss/eval_every if mod_eval == 0 else running_loss/mod_eval
                 mean_eval_loss = eval(model, val_loader, writer, global_step, gpu_id)
 
                 tqdm.write(f"\n iter {b_idx+1} | train loss: {mean_train_loss:.4f}, eval loss: {mean_eval_loss:.4f} \n")
