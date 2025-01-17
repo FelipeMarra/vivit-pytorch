@@ -77,7 +77,7 @@ class GamesDataset(Dataset):
 
         # Conv 3D expecs float Tensor[C, T, H, W]
         if self.transpose:
-            chunk = chunk.transpose(0, 1).float()
+            chunk = chunk.transpose(0, 1)
 
         return {
                 'video': chunk, 

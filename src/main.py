@@ -3,7 +3,6 @@
 import os
 from datetime import datetime
 import random
-import multiprocessing as mp
 import torch
 import numpy as np
 import consts as c
@@ -65,10 +64,17 @@ def main(rank:int, world_size:int):
 
     train_dataset, eval_dataset, test_dataset = get_datasets(c.DATASET, c.DATASET_PATH, c.N_FRAMES, train_transforms, test_transforms)
 
-    n_workers = mp.cpu_count() # n_workers == num of threads
-    train_loader = DataLoader(train_dataset, batch_size=c.BATCH_SIZE, shuffle=False, num_workers=n_workers, sampler=DistributedSampler(train_dataset, shuffle=True))
-    val_loader = DataLoader(eval_dataset, batch_size=c.BATCH_SIZE, shuffle=False, num_workers=n_workers, sampler=DistributedSampler(eval_dataset, shuffle=False))
-    test_loader = DataLoader(test_dataset, batch_size=c.BATCH_SIZE, shuffle=False, num_workers=n_workers, sampler=DistributedSampler(test_dataset, shuffle=False))
+    train_loader = DataLoader(train_dataset, batch_size=c.BATCH_SIZE, 
+                            shuffle=False, num_workers=c.N_WORKERS, pin_memory=True,
+                            sampler=DistributedSampler(train_dataset, shuffle=True))
+
+    val_loader = DataLoader(eval_dataset, batch_size=c.BATCH_SIZE, 
+                            shuffle=False, num_workers=c.N_WORKERS, pin_memory=True,
+                            sampler=DistributedSampler(eval_dataset, shuffle=False))
+
+    test_loader = DataLoader(test_dataset, batch_size=c.TEST_BATCH_SIZE, 
+                            shuffle=False, num_workers=c.N_WORKERS, pin_memory=True,
+                            sampler=DistributedSampler(test_dataset, shuffle=False))
 
     #%%
     # Tensorboard writer for GPU 0
@@ -109,6 +115,7 @@ def main(rank:int, world_size:int):
 
     if writer != None:
         writer.close()
+
     destroy_process_group()
 
 if __name__ == "__main__":

@@ -7,6 +7,7 @@ class ViViT(nn.Module):
         super().__init__()
         self.n_patches = n_patches
         self.emb_dim = emb_dim
+        self.n_classes = n_classes
 
         self.tokenizer = nn.Conv3d(kernel_size=tublet_size, stride=tublet_size, in_channels=3, out_channels=emb_dim)
         self.pos_emb_table = nn.Embedding(n_patches, emb_dim)

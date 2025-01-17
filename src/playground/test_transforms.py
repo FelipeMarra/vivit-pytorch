@@ -4,7 +4,6 @@ import os
 sys.path.append(os.path.abspath('../'))
 
 from datasets.datasets import get_datasets, DatasetsEnum
-import torch
 from torchaudio.io import StreamWriter
 from torch.utils.data import DataLoader
 from torchvision.transforms import v2

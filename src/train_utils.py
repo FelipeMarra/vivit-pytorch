@@ -1,3 +1,4 @@
+import os
 import torch
 import torch.nn as nn
 from tqdm import tqdm
@@ -5,8 +6,9 @@ from torch.nn import functional as F
 from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
 from torch.nn.parallel import DistributedDataParallel as DDP
+from vivit.vivit import ViViT
 
-def train(model:nn.Module, train_loader:DataLoader, val_loader:DataLoader, epochs:int, gpu_id:int, lr=1e-3, eval_every=100, writer:SummaryWriter|None=None):
+def train(model:ViViT, train_loader:DataLoader, val_loader:DataLoader, epochs:int, gpu_id:int, lr=1e-3, eval_every=100, writer:SummaryWriter|None=None):
     model = model.train()
     model = model.to(gpu_id)
     model = DDP(model, device_ids=[gpu_id])
@@ -62,16 +64,19 @@ def train(model:nn.Module, train_loader:DataLoader, val_loader:DataLoader, epoch
         #%%
         # Save model
         if gpu_id == 0:
+            if(not os.path.isdir("./models")):
+                os.mkdir("./models")
+
             checkpoint = {
                 "model": model.module.state_dict(),
                 "optimizer": criterion.state_dict(),
                 "scaler": scaler.state_dict()
             }
 
-            torch.save(checkpoint, f"./model_t_{mean_train_loss:.4f}_e_{mean_eval_loss:.4f}.pth")
+            torch.save(checkpoint, f"./models/model_ep_{e_idx}_trl_{mean_train_loss:.4f}_evl_{mean_eval_loss:.4f}.pth")
 
 @torch.no_grad()
-def eval(model:nn.Module, loader:DataLoader, writer:SummaryWriter|None, global_step:int, gpu_id:int):
+def eval(model:ViViT, loader:DataLoader, writer:SummaryWriter|None, global_step:int, gpu_id:int):
     model = model.eval()
     criterion = nn.CrossEntropyLoss()
 
@@ -98,7 +103,7 @@ def eval(model:nn.Module, loader:DataLoader, writer:SummaryWriter|None, global_s
     return loss
 
 @torch.no_grad()
-def test(model:nn.Module, loader:DataLoader, gpu_id:int, checkpoint=None, writer:SummaryWriter|None=None):
+def test(model:ViViT, loader:DataLoader, gpu_id:int, checkpoint=None, writer:SummaryWriter|None=None):
     criterion = nn.CrossEntropyLoss()
 
     if checkpoint:
@@ -110,12 +115,23 @@ def test(model:nn.Module, loader:DataLoader, gpu_id:int, checkpoint=None, writer
     losses = torch.zeros(len(loader))
     acc_sum = 0
     for b_idx, batch in tqdm(enumerate(loader), total=len(loader), desc="Test"):
-        xb = batch['video'].to(gpu_id)
+        # Batch will be [B, V, C, T, H, W], where V is the number of views
+        xb:torch.Tensor = batch['views'].to(gpu_id)
+        B, V, C, T, H, W = xb.shape
+
+        # We'll put views of the same video one after the other along the batch dim
+        xb = xb.view(B*V, C, T, H, W)
+
         yb = batch['class'].to(gpu_id)
 
         # Mixed precision forward pass
         with torch.autocast(device_type='cuda', dtype=torch.float16):
-            logits = model(xb)
+            # logits will be [B*V, n_classes]
+            logits:torch.Tensor = model(xb)
+            # we'll separate the views and avg them
+            logits = logits.view(B, V, model.n_classes)
+            logits = logits.mean(1) # keepdims = False will remove the V dim
+
             loss = criterion(logits, yb)
             loss = loss.detach().cpu().item()
 
