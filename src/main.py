@@ -6,7 +6,7 @@ import random
 import torch
 import numpy as np
 import consts as c
-from datasets.datasets import get_datasets
+from datasets.get_datasets import get_datasets
 from torch.utils.data import DataLoader
 from torchvision.transforms import v2
 from vivit.vivit import ViViT

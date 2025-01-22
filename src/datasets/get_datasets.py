@@ -36,6 +36,10 @@ def get_datasets(
         return train_dataset, eval_dataset, test_dataset
 
     if option == DatasetsEnum.GAMES:
-        train_dataset = GamesDataset(root, n_frames, train_transforms, stride=stride, transpose=transpose)
+        train_dataset = GamesDataset(root, 'train', n_frames, train_transforms, stride=stride, transpose=transpose)
 
-        return train_dataset, None, None
+        #TODO there is no split yet, so return the same thing for now
+        eval_dataset = GamesDataset(root, 'val', n_frames, train_transforms, stride=stride, transpose=transpose)
+        test_dataset = GamesDataset(root, 'test', n_frames, train_transforms, stride=stride, transpose=transpose)
+
+        return train_dataset, eval_dataset, test_dataset

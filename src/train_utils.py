@@ -73,7 +73,7 @@ def train(model:ViViT, train_loader:DataLoader, val_loader:DataLoader, epochs:in
                 "scaler": scaler.state_dict()
             }
 
-            torch.save(checkpoint, f"./models/model_ep_{e_idx}_trl_{mean_train_loss:.4f}_evl_{mean_eval_loss:.4f}.pth")
+            torch.save(checkpoint, f"./models/model_ep_{e_idx+1}_trl_{mean_train_loss:.4f}_evl_{mean_eval_loss:.4f}.pth")
 
 @torch.no_grad()
 def eval(model:ViViT, loader:DataLoader, writer:SummaryWriter|None, global_step:int, gpu_id:int):

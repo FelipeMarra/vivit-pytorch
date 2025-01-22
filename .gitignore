@@ -164,3 +164,7 @@ cython_debug/
 
 # PyTorch
 *.pth
+
+# Tensorboard
+vivit01/
+vivit_tensorboard/

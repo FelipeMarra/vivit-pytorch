@@ -1,4 +1,4 @@
-from datasets.datasets import DatasetsEnum
+from datasets.get_datasets import DatasetsEnum
 
 # Dataset params
 DATASET = DatasetsEnum.KINETICS400
@@ -27,5 +27,5 @@ SEED = 1234
 BATCH_SIZE = 4
 TEST_BATCH_SIZE = 1 # Test with 4 views, so loades 4 videos for each BATCH_SIZE videos
 EPOCHS = 30
-LR = 1e-3
+LR = 1e-5
 EVAL_EVERY = 1000

@@ -4,13 +4,14 @@ import os
 
 sys.path.append(os.path.abspath('../'))
 
-from datasets.kinetics import KineticsDataset
+from datasets.get_datasets import get_datasets, DatasetsEnum
 import torch
 from torch.utils.data import DataLoader
 from torchvision.transforms import v2
 from torchaudio.io import StreamWriter
 
-KINETICS_PATH = '/media/felipe/32740855-6a5b-4166-b047-c8177bb37be1/kinetics-dataset/k400/arranged'
+DATASET_PATH = '/home/felipe/Desktop/games_dataset'
+#DATASET_PATH = '/media/felipe/32740855-6a5b-4166-b047-c8177bb37be1/kinetics-dataset/k400/arranged'
 BATCH_SIZE = 1
 N_FRAMES = 32
 EMB_DIM = 512
@@ -27,10 +28,11 @@ test_transforms = v2.Compose([
         v2.ToDtype(torch.uint8),
     ])
 
-test_loader = DataLoader(
-    KineticsDataset(KINETICS_PATH, 'test', N_FRAMES, test_transforms, transpose=False),
-    shuffle=True, batch_size=BATCH_SIZE, num_workers=2
-    )
+# Passing test_transforms for test_transforms because we wont used anyway
+train_dataset, eval_dataset, test_dataset = get_datasets(DatasetsEnum.GAMES, DATASET_PATH, N_FRAMES, 
+                                                        test_transforms, test_transforms, transpose=False)
+
+test_loader = DataLoader(test_dataset, shuffle=True, batch_size=BATCH_SIZE, num_workers=2)
 
 batch = next(iter(test_loader))
 
