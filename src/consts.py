@@ -29,5 +29,4 @@ LR = 1e-5 if OPTIM == OptimizerEnum.ADAMW else 1e-1
 BATCH_SIZE = 4
 TEST_BATCH_SIZE = 1 # Test with 4 views, so loades 4 videos for each BATCH_SIZE videos
 EPOCHS = 30
-LR = 1e-5
 EVAL_EVERY = 1000

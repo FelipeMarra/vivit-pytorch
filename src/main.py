@@ -94,7 +94,7 @@ def main(rank:int, world_size:int):
 
     #%% 
     # Train
-    train(model, train_loader, val_loader, c.EPOCHS, rank, lr=c.LR, eval_every=c.EVAL_EVERY, writer=writer)
+    train(model, train_loader, val_loader, c.EPOCHS, rank, optim_enum=c.OPTIM, lr=c.LR, eval_every=c.EVAL_EVERY, writer=writer)
 
     #%%
     # Test

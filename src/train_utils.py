@@ -14,9 +14,10 @@ class OptimizerEnum(Enum):
     ADAMW = 1
     SGD_COS = 2
 
-class WarmupCosineSchedule(LambdaLR):
+class WarmupCosineScheduler(LambdaLR):
     #from https://github.com/KSonPham/ViVit-a-Pytorch-implementation/blob/14aaab46a6301a1a786a6372f686d75b6ae7fac5/utils/scheduler.py#L46
-    """ Linear warmup and then cosine decay.
+    """ 
+        Linear warmup and then cosine decay.
         Linearly increases learning rate from 0 to 1 over `warmup_steps` training steps.
         Decreases learning rate from 1. to 0. over remaining `t_total - warmup_steps` steps following a cosine curve.
         If `cycles` (default=0.5) is different from default, learning rate follows cosine function after warmup.
@@ -30,7 +31,7 @@ class WarmupCosineSchedule(LambdaLR):
         self.warmup_steps = warmup_steps
         self.t_total = t_total
         self.cycles = cycles
-        super(WarmupCosineSchedule, self).__init__(optimizer, self.lr_lambda, last_epoch=last_epoch)
+        super(WarmupCosineScheduler, self).__init__(optimizer, self.lr_lambda, last_epoch=last_epoch)
 
     def lr_lambda(self, step):
         if step < self.warmup_steps:
@@ -52,17 +53,20 @@ def train(model:ViViT, train_loader:DataLoader, val_loader:DataLoader, epochs:in
     scheduler = None
     if optim_enum == OptimizerEnum.ADAMW: 
         optimizer = torch.optim.AdamW(model.parameters(), lr=lr, weight_decay=1e-2)
+
+        print("USING ADAM W, base lr:", lr)
     else:
-        optimizer = torch.optim.SGD(model.parameters(),
-                                lr=lr,
-                                momentum=0.9,
-                                weight_decay=0)
+        optimizer = torch.optim.SGD(model.parameters(), lr=lr, momentum=0.9, weight_decay=0)
 
         # https://github.com/google-research/scenic/blob/97d6ac5b65040621f266b0da3bf05066baa664f3/scenic/projects/vivit/configs/kinetics400/vivit_base_k400.py#L141C1-L141C12
-        scheduler = WarmupCosineSchedule(optimizer, 
-                                         warmup_steps=int(2.5*n_steps), 
-                                         t_total=epochs*n_steps,
-                                         cycles=epochs+0.5) # This will make aprox. one cycle per epoch. The +0.5 will make it end on 0 (see the geogebra comment inside the class)
+        scheduler = WarmupCosineScheduler(
+            optimizer, 
+            warmup_steps= int(2.5 * n_steps), 
+            t_total= epochs * n_steps,
+            cycles= epochs + 0.5 # This will make aprox. one cycle per epoch. The +0.5 will make it end on 0 (see the geogebra comment inside the class)
+        )
+
+        print("USING SGD_CO, base lr:", lr)
 
     criterion = nn.CrossEntropyLoss()
     scaler = torch.amp.GradScaler()
@@ -87,13 +91,12 @@ def train(model:ViViT, train_loader:DataLoader, val_loader:DataLoader, epochs:in
 
             # Scaled backprop
             scaler.scale(loss).backward()
+            scaler.step(optimizer)
+            scaler.update()
 
             if scheduler != None:
-                scaler.step(scheduler)
-            else:
-                scaler.step(optimizer)
+                scheduler.step()
 
-            scaler.update()
             optimizer.zero_grad(set_to_none=True)
 
             loss = loss.detach().cpu().item()
@@ -103,7 +106,7 @@ def train(model:ViViT, train_loader:DataLoader, val_loader:DataLoader, epochs:in
             if writer != None:
                 writer.add_scalar('Train/Loss', loss, global_step)
 
-                current_lr = scheduler.get_lr()[0] if scheduler != None else optimizer.param_groups[0]['lr']
+                current_lr = optimizer.param_groups[0]['lr'] # this is also what scheduler.get_last_lr() does
                 writer.add_scalar('Train/Lr', current_lr, global_step)
 
             mod_eval = (b_idx+1) % eval_every
