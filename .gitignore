@@ -166,5 +166,5 @@ cython_debug/
 *.pth
 
 # Tensorboard
-vivit01/
+vivit_01/
 vivit_tensorboard/

@@ -22,6 +22,7 @@ def train(model:ViViT, train_loader:DataLoader, val_loader:DataLoader, epochs:in
     running_loss = 0
     mean_train_loss = 0
     mean_eval_loss = 0
+    acc_sum = 0
 
     for e_idx in range(epochs):
         train_loader.sampler.set_epoch(e_idx)
@@ -33,7 +34,7 @@ def train(model:ViViT, train_loader:DataLoader, val_loader:DataLoader, epochs:in
             # Mixed precision forward pass
             with torch.autocast(device_type='cuda', dtype=torch.float16):
                 logits = model(xb)
-                loss = criterion(logits, yb)
+                loss:torch.Tensor = criterion(logits, yb)
 
             # Scaled backprop
             scaler.scale(loss).backward()
@@ -52,10 +53,17 @@ def train(model:ViViT, train_loader:DataLoader, val_loader:DataLoader, epochs:in
 
             mod_eval = (b_idx+1) % eval_every
             if mod_eval == 0 or b_idx+1 == len(train_loader):
+                # train acc & loss
+                train_acc = acc_sum/eval_every if mod_eval == 0 else acc_sum/mod_eval
                 mean_train_loss = running_loss/eval_every if mod_eval == 0 else running_loss/mod_eval
-                mean_eval_loss = eval(model, val_loader, writer, global_step, gpu_id)
 
-                tqdm.write(f"\n iter {b_idx+1} | train loss: {mean_train_loss:.4f}, eval loss: {mean_eval_loss:.4f} \n")
+                # eval acc & loss
+                eval_acc, mean_eval_loss = eval(model, val_loader, writer, global_step, gpu_id)
+
+                if writer != None:
+                    writer.add_scalar('Train/Acc', train_acc, global_step)
+
+                tqdm.write(f"\n Iter {b_idx+1} | TRAIN Acc: {train_acc:.4f}; Loss:  {mean_train_loss:.4f} | EVAL Acc: {eval_acc:.4f}; Loss: {mean_eval_loss:.4f} \n")
 
                 running_loss = 0
 
@@ -80,8 +88,9 @@ def eval(model:ViViT, loader:DataLoader, writer:SummaryWriter|None, global_step:
     model = model.eval()
     criterion = nn.CrossEntropyLoss()
 
-    losses = torch.zeros(len(loader))
-    for b_idx, batch in tqdm(enumerate(loader), total=len(loader), desc="Eval"):
+    loss_sum = 0
+    acc_sum = 0
+    for _, batch in tqdm(enumerate(loader), total=len(loader), desc="Eval"):
         xb = batch['video'].to(gpu_id)
         yb = batch['class'].to(gpu_id)
 
@@ -91,16 +100,23 @@ def eval(model:ViViT, loader:DataLoader, writer:SummaryWriter|None, global_step:
             loss = criterion(logits, yb)
             loss = loss.detach().cpu().item()
 
-        losses[b_idx] = loss
+        loss_sum += loss
+
+        # acc
+        predict = torch.argmax(logits, dim=1)
+        acc_sum += torch.sum(predict == yb).detach().cpu().item()
 
     model = model.train()
 
-    loss = losses.mean().item()
+    n_examples = len(loader)*loader.batch_size
+    acc = acc_sum/n_examples
+    loss = loss_sum/n_examples
 
     if writer != None:
+        writer.add_scalar('Eval/Acc', acc, global_step)
         writer.add_scalar('Eval/Loss', loss, global_step)
 
-    return loss
+    return acc, loss
 
 @torch.no_grad()
 def test(model:ViViT, loader:DataLoader, gpu_id:int, checkpoint=None, writer:SummaryWriter|None=None):
@@ -112,9 +128,9 @@ def test(model:ViViT, loader:DataLoader, gpu_id:int, checkpoint=None, writer:Sum
 
     model = model.eval()
 
-    losses = torch.zeros(len(loader))
+    loss_sum = 0
     acc_sum = 0
-    for b_idx, batch in tqdm(enumerate(loader), total=len(loader), desc="Test"):
+    for _, batch in tqdm(enumerate(loader), total=len(loader), desc="Test"):
         # Batch will be [B, V, C, T, H, W], where V is the number of views
         xb:torch.Tensor = batch['views'].to(gpu_id)
         B, V, C, T, H, W = xb.shape
@@ -132,21 +148,20 @@ def test(model:ViViT, loader:DataLoader, gpu_id:int, checkpoint=None, writer:Sum
             logits = logits.view(B, V, model.n_classes)
             logits = logits.mean(1) # keepdims = False will remove the V dim
 
-            loss = criterion(logits, yb)
+            loss:torch.Tensor = criterion(logits, yb)
             loss = loss.detach().cpu().item()
 
         # acc
-        probs = F.softmax(logits, dim=1)
-        predict = torch.argmax(probs, dim=1)
-        acc_sum += torch.sum(predict == yb).detach().item()
+        predict = torch.argmax(logits, dim=1)
+        acc_sum += torch.sum(predict == yb).detach().cpu().item()
 
-        losses[b_idx] = loss
+        loss_sum += loss
 
     model = model.train()
 
     n_examples = len(loader)*loader.batch_size
     acc = acc_sum/n_examples
-    loss = losses.mean()
+    loss = loss_sum/n_examples
 
     if writer != None:
         writer.add_scalar('Test/Acc', acc)

@@ -2,14 +2,13 @@ from datasets.get_datasets import DatasetsEnum
 
 # Dataset params
 DATASET = DatasetsEnum.KINETICS400
-DATASET_PATH = '/home/es119256/kinetics-dataset/k400/videos'
-#DATASET_PATH = '/media/felipe/32740855-6a5b-4166-b047-c8177bb37be1/kinetics-dataset/k400/arranged'
+#DATASET_PATH = '/home/es119256/kinetics-dataset/k400/videos'
+DATASET_PATH = '/media/felipe/32740855-6a5b-4166-b047-c8177bb37be1/kinetics-dataset/k400/arranged'
 N_CLASSES = 400
 N_WORKERS = 4 # Number of dataloader workrs per GPU
 
 # Video Params
 N_FRAMES = 32
-MIN_RESIZE = 256
 CROP_SIZE = 224
 
 # Transformer Params
