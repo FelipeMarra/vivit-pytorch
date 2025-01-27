@@ -1,4 +1,5 @@
 from datasets.get_datasets import DatasetsEnum
+from train_utils import OptimizerEnum
 
 # Dataset params
 DATASET = DatasetsEnum.KINETICS400
@@ -23,6 +24,8 @@ N_PATCHES = (N_FRAMES/TUBLET_T) * (CROP_SIZE/TUBLET_H) * (CROP_SIZE/TUBLET_W)
 
 # General Params
 SEED = 1234
+OPTIM = OptimizerEnum.SGD_COS
+LR = 1e-5 if OPTIM == OptimizerEnum.ADAMW else 1e-1
 BATCH_SIZE = 4
 TEST_BATCH_SIZE = 1 # Test with 4 views, so loades 4 videos for each BATCH_SIZE videos
 EPOCHS = 30
