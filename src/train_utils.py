@@ -56,7 +56,7 @@ def train(model:ViViT, train_loader:DataLoader, val_loader:DataLoader, epochs:in
 
         print("USING ADAM W, base lr:", lr)
     else:
-        optimizer = torch.optim.SGD(model.parameters(), lr=lr, momentum=0.9, weight_decay=0)
+        optimizer = torch.optim.SGD(model.parameters(), lr=lr, momentum=0.9)
 
         # https://github.com/google-research/scenic/blob/97d6ac5b65040621f266b0da3bf05066baa664f3/scenic/projects/vivit/configs/kinetics400/vivit_base_k400.py#L141C1-L141C12
         scheduler = WarmupCosineScheduler(
@@ -108,6 +108,10 @@ def train(model:ViViT, train_loader:DataLoader, val_loader:DataLoader, epochs:in
 
                 current_lr = optimizer.param_groups[0]['lr'] # this is also what scheduler.get_last_lr() does
                 writer.add_scalar('Train/Lr', current_lr, global_step)
+
+            # acc
+            predict = torch.argmax(logits, dim=1)
+            acc_sum += torch.sum(predict == yb).detach().cpu().item()
 
             mod_eval = (b_idx+1) % eval_every
             if mod_eval == 0 or b_idx+1 == len(train_loader):
