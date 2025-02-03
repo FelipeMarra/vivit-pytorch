@@ -76,6 +76,7 @@ def train(model:ViViT, train_loader:DataLoader, val_loader:DataLoader, epochs:in
     mean_train_loss = 0
     mean_eval_loss = 0
     acc_sum = 0
+    n_examples = 0
 
     for e_idx in range(epochs):
         train_loader.sampler.set_epoch(e_idx)
@@ -112,11 +113,12 @@ def train(model:ViViT, train_loader:DataLoader, val_loader:DataLoader, epochs:in
             # acc
             predict = torch.argmax(logits, dim=1)
             acc_sum += torch.sum(predict == yb).detach().cpu().item()
+            n_examples += yb.shape[0]
 
             mod_eval = (b_idx+1) % eval_every
             if mod_eval == 0 or b_idx+1 == len(train_loader):
                 # train acc & loss
-                train_acc = acc_sum/eval_every if mod_eval == 0 else acc_sum/mod_eval
+                train_acc = acc_sum/n_examples
                 mean_train_loss = running_loss/eval_every if mod_eval == 0 else running_loss/mod_eval
 
                 # eval acc & loss
@@ -128,6 +130,8 @@ def train(model:ViViT, train_loader:DataLoader, val_loader:DataLoader, epochs:in
                 tqdm.write(f"\n Iter {b_idx+1} | TRAIN Acc: {train_acc:.4f}; Loss:  {mean_train_loss:.4f} | EVAL Acc: {eval_acc:.4f}; Loss: {mean_eval_loss:.4f} \n")
 
                 running_loss = 0
+                acc_sum = 0
+                n_examples = 0
 
             global_step += 1
 
@@ -170,7 +174,7 @@ def eval(model:ViViT, loader:DataLoader, writer:SummaryWriter|None, global_step:
 
     model = model.train()
 
-    n_examples = len(loader)*loader.batch_size
+    n_examples = len(loader.dataset)
     acc = acc_sum/n_examples
     loss = loss_sum/len(loader)
 
