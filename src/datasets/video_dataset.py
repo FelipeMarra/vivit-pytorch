@@ -90,13 +90,13 @@ class VideoDataset(Dataset):
                 failed = False
             except:
                 if not_enough_frames and last_failed_video != video_path:
-                    print("Not enough frames in video:", video_path, "Trying with half of the stride")
+                    #print("Not enough frames in video:", video_path, "Trying with half of the stride")
                     stride = self.stride // 2
                     not_enough_frames = False
                     last_failed_video = video_path
                 else:
                     stride = self.stride
-                    print("FAILED on loading video:", video_path)
+                    #print("FAILED on loading video:", video_path)
                     # in case of currupted video get another randomly
                     index = torch.randint(0, len(self.videos_paths), (1,)).item()
                     video_path = self.videos_paths[index]
@@ -107,7 +107,7 @@ class VideoDataset(Dataset):
             pad_size = self.n_frames-T
             pad = torch.zeros((pad_size, C, H, W), dtype=chunk.dtype)
             chunk = torch.cat((chunk, pad), 0)
-            print(f"Padded with {pad_size} frames for video {video_path}")
+            #print(f"Padded with {pad_size} frames for video {video_path}")
         elif T > self.n_frames:
             chunk = chunk[:self.n_frames, :, :, :]
 

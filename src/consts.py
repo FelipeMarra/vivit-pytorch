@@ -25,8 +25,8 @@ N_PATCHES = (N_FRAMES/TUBLET_T) * (CROP_SIZE/TUBLET_H) * (CROP_SIZE/TUBLET_W)
 # General Params
 SEED = 1234
 OPTIM = OptimizerEnum.ADAMW
-LR = 5e-5 if OPTIM == OptimizerEnum.ADAMW else 1e-1
-BATCH_SIZE = 4
+LR = 1e-5 if OPTIM == OptimizerEnum.ADAMW else 1e-1
+BATCH_SIZE = 6
 TEST_BATCH_SIZE = 1 # Test with 4 views, so loades 4 videos for each BATCH_SIZE videos
 EPOCHS = 30
-EVAL_EVERY = 1000
+EVAL_EVERY = 10000
